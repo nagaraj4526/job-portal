@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+  <title>Available Jobs · Job Portal</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Clash+Display:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&family=Manrope:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --ink:    #0a0a0f;
+      --ink2:   #0f0f18;
+      --gold:   #f5c842;
+      --gold2:  #e8a800;
+      --teal:   #00d4aa;
+      --red:    #f87171;
+      --purple: #a78bfa;
+      --muted:  rgba(255,255,255,0.45);
+      --border: rgba(255,255,255,0.08);
+    }
+    *, *::before, *::after { box-sizing: border-box; margin:0; padding:0; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--ink);
+      font-family: 'Manrope', sans-serif;
+      color: #fff;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: '';
+      position: fixed; inset: 0; z-index: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+      opacity: 0.03; pointer-events: none;
+    }
+
+    .bg-grid {
+      position: fixed; inset: 0; z-index: 0; pointer-events: none;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+      background-size: 60px 60px;
+    }
+
+    .blob { position: fixed; border-radius: 50%; filter: blur(120px); pointer-events: none; z-index: 0; }
+    .blob-1 { width:700px;height:700px; background:radial-gradient(circle,rgba(0,212,170,0.09) 0%,transparent 70%); top:-200px;right:-200px; animation:bf 15s ease-in-out infinite alternate; }
+    .blob-2 { width:500px;height:500px; background:radial-gradient(circle,rgba(245,200,66,0.08) 0%,transparent 70%); bottom:-150px;left:-100px; animation:bf 18s ease-in-out infinite alternate-reverse; }
+    .blob-3 { width:300px;height:300px; background:radial-gradient(circle,rgba(167,139,250,0.08) 0%,transparent 70%); top:40%;left:40%; animation:bf 11s ease-in-out infinite alternate; }
+    @keyframes bf { from{transform:translate(0,0)scale(1)} to{transform:translate(22px,18px)scale(1.06)} }
+
+    /* TOPBAR */
+    .topbar {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(10,10,15,0.88); backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 40px;
+      display: flex; align-items: center; justify-content: space-between;
+      height: 60px;
+    }
+    .topbar-brand {
+      font-family: 'Clash Display', sans-serif;
+      font-size: 1.1rem; font-weight: 700;
+      display: flex; align-items: center; gap: 8px;
+      text-decoration: none; color: #fff;
+    }
+    .brand-dot { width:7px;height:7px;border-radius:50%;background:var(--gold);animation:pd 2s ease-in-out infinite; }
+    @keyframes pd { 0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.5);opacity:.6} }
+    .topbar-right { display: flex; align-items: center; gap: 16px; }
+    .topbar-link {
+      color: var(--muted); text-decoration: none; font-size: 0.8rem; font-weight: 600;
+      display: flex; align-items: center; gap: 5px; transition: color 0.2s;
+    }
+    .topbar-link:hover { color: #fff; }
+
+    /* FULL-BLEED HEADER */
+    .page-hero {
+      position: relative; z-index: 2;
+      padding: 80px 40px 60px;
+      border-bottom: 1px solid var(--border);
+      overflow: hidden;
+    }
+    .hero-number {
+      font-family: 'Clash Display', sans-serif;
+      font-size: clamp(8rem, 20vw, 16rem);
+      font-weight: 700;
+      color: transparent;
+      -webkit-text-stroke: 1px rgba(255,255,255,0.06);
+      position: absolute;
+      right: -20px; top: 50%; transform: translateY(-50%);
+      line-height: 1; pointer-events: none;
+      letter-spacing: -0.05em;
+    }
+    .hero-inner { position: relative; z-index: 1; max-width: 700px; }
+    .hero-eyebrow {
+      display: inline-flex; align-items: center; gap: 8px;
+      font-size: 0.7rem; font-weight: 800; letter-spacing: 0.18em; text-transform: uppercase;
+      color: var(--teal); margin-bottom: 16px;
+    }
+    .eyebrow-line { width: 32px; height: 1.5px; background: var(--teal); }
+    .hero-title {
+      font-family: 'Clash Display', sans-serif;
+      font-size: clamp(2.5rem, 6vw, 5rem); font-weight: 700;
+      letter-spacing: -0.03em; line-height: 1;
+      margin-bottom: 20px;
+    }
+    .hero-title em { font-family: 'Instrument Serif', serif; font-style: italic; color: var(--gold); }
+    .hero-meta {
+      display: flex; align-items: center; gap: 20px; flex-wrap: wrap;
+    }
+    .hero-stat {
+      font-size: 0.78rem; color: var(--muted);
+      display: flex; align-items: center; gap: 6px;
+    }
+    .hero-stat strong { color: #fff; font-weight: 700; }
+    .hero-sep { width: 1px; height: 14px; background: var(--border); }
+
+    /* SUCCESS */
+    .alert-success-custom {
+      background: rgba(0,212,170,0.08); border: 1px solid rgba(0,212,170,0.2);
+      border-radius: 14px; padding: 14px 20px; color: var(--teal);
+      font-size: 0.85rem; display: flex; align-items: center; gap: 10px;
+      margin: 28px 40px 0; position: relative; z-index: 2;
+    }
+
+    /* CARDS MASONRY */
+    .cards-section {
+      padding: 40px;
+      position: relative; z-index: 2;
+    }
+
+    .masonry {
+      columns: 3;
+      column-gap: 20px;
+    }
+
+    .job-card {
+      break-inside: avoid;
+      margin-bottom: 20px;
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 28px 24px;
+      background: rgba(255,255,255,0.04);
+      position: relative; overflow: hidden;
+      transition: transform 0.3s, border-color 0.3s, box-shadow 0.3s, background 0.3s;
+      animation: popIn 0.5s ease both;
+    }
+    @keyframes popIn { from{opacity:0;transform:scale(0.95)} to{opacity:1;transform:scale(1)} }
+    .job-card:hover {
+      transform: translateY(-5px);
+      border-color: rgba(255,255,255,0.14);
+      box-shadow: 0 24px 60px rgba(0,0,0,0.4);
+      background: rgba(255,255,255,0.065);
+    }
+
+    /* Accent stripe top */
+    .job-card::before {
+      content: '';
+      position: absolute; top: 0; left: 0; right: 0; height: 2px;
+      background: linear-gradient(90deg, var(--card-accent, var(--gold)), transparent);
+      opacity: 0.5;
+    }
+    .job-card:hover::before { opacity: 1; }
+
+    /* Card color variants */
+    .job-card:nth-child(4n+1) { --card-accent: var(--gold); }
+    .job-card:nth-child(4n+2) { --card-accent: var(--teal); }
+    .job-card:nth-child(4n+3) { --card-accent: var(--purple); }
+    .job-card:nth-child(4n+4) { --card-accent: var(--red); }
+
+    /* Tall variant */
+    .job-card:nth-child(3n+1) { padding: 32px 24px; }
+
+    .card-number {
+      font-family: 'Clash Display', sans-serif;
+      font-size: 0.65rem; font-weight: 800;
+      letter-spacing: 0.15em; color: rgba(255,255,255,0.15);
+      margin-bottom: 16px;
+    }
+
+    .card-top { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 18px; }
+    .company-badge {
+      width: 46px; height: 46px; border-radius: 14px;
+      background: rgba(255,255,255,0.07); border: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Clash Display', sans-serif; font-size: 1.1rem; font-weight: 700;
+      color: var(--card-accent, var(--gold));
+    }
+    .new-badge {
+      background: rgba(0,212,170,0.12); border: 1px solid rgba(0,212,170,0.25);
+      color: var(--teal); border-radius: 6px; padding: 3px 10px;
+      font-size: 0.62rem; font-weight: 800; letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    .card-company { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
+    .card-title {
+      font-family: 'Clash Display', sans-serif;
+      font-size: 1.15rem; font-weight: 600; line-height: 1.2;
+      margin-bottom: 18px;
+    }
+
+    .card-tags { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 20px; }
+    .card-tag {
+      display: inline-flex; align-items: center; gap: 5px;
+      background: rgba(255,255,255,0.05); border: 1px solid var(--border);
+      border-radius: 20px; padding: 4px 11px;
+      font-size: 0.71rem; color: var(--muted);
+    }
+    .card-tag i { font-size: 0.68rem; }
+    .card-tag.highlight {
+      background: rgba(245,200,66,0.08);
+      border-color: rgba(245,200,66,0.2);
+      color: var(--gold); font-weight: 700;
+    }
+
+    .card-footer-row {
+      display: flex; align-items: center; gap: 10px;
+      padding-top: 18px; border-top: 1px solid var(--border);
+    }
+    .apply-btn {
+      flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+      background: var(--gold); color: var(--ink);
+      border: none; border-radius: 10px; padding: 10px 16px;
+      font-family: 'Manrope', sans-serif; font-weight: 700; font-size: 0.82rem;
+      text-decoration: none;
+      transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+    }
+    .apply-btn:hover { background: var(--gold2); transform: translateY(-1px); box-shadow: 0 6px 18px rgba(245,200,66,0.3); color: var(--ink); }
+
+    .save-btn {
+      width: 38px; height: 38px; border-radius: 10px;
+      background: rgba(255,255,255,0.05); border: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      color: var(--muted); cursor: pointer; font-size: 0.9rem;
+      transition: background 0.2s, color 0.2s;
+      text-decoration: none;
+    }
+    .save-btn:hover { background: rgba(255,255,255,0.1); color: #fff; }
+
+    /* Empty */
+    .empty-state { text-align: center; padding: 80px 20px; color: var(--muted); }
+    .empty-state i { font-size: 3rem; margin-bottom: 16px; opacity: 0.3; display: block; }
+
+    /* Footer */
+    footer {
+      position: relative; z-index: 2;
+      border-top: 1px solid var(--border); padding: 24px 40px;
+      display: flex; align-items: center; justify-content: space-between;
+      font-size: 0.78rem; color: var(--muted);
+    }
+    .footer-brand { font-family: 'Clash Display', sans-serif; font-weight: 600; color: rgba(255,255,255,0.5); }
+
+    @media(max-width:900px){ .masonry{columns:2;} .page-hero,.cards-section{padding:40px 20px;} }
+    @media(max-width:540px){ .masonry{columns:1;} .topbar{padding:0 20px;} footer{padding:20px;} }
+  </style>
+</head>
+<body>
+
+  <div class="bg-grid"></div>
+  <div class="blob blob-1"></div>
+  <div class="blob blob-2"></div>
+  <div class="blob blob-3"></div>
+
+  <!-- TOPBAR -->
+  <header class="topbar">
+    <a href="/" class="topbar-brand"><span class="brand-dot"></span> JobPortal</a>
+    <div class="topbar-right">
+      <a href="/" class="topbar-link"><i class="bi bi-arrow-left"></i> Home</a>
+    </div>
+	<div class="topbar-right">
+	     <a th:href="@{/user/dashboard}" class="topbar-link"><i class="bi bi-arrow-left"></i> MyAppllication</a>
+	   </div>
+  </header>
+
+  <!-- HERO -->
+  <section class="page-hero">
+    <div class="hero-number" th:text="${#lists.size(companyList)}">12</div>
+    <div class="hero-inner">
+      <div class="hero-eyebrow">
+        <span class="eyebrow-line"></span> Available Positions
+      </div>
+      <h1 class="hero-title">
+        Browse <em>Open</em><br>Opportunities
+      </h1>
+      <div class="hero-meta">
+        <div class="hero-stat"><strong th:text="${#lists.size(companyList)}">0</strong> &nbsp;positions listed</div>
+        <div class="hero-sep"></div>
+        <div class="hero-stat">Updated <strong>today</strong></div>
+        <div class="hero-sep"></div>
+        <div class="hero-stat"><strong>Free</strong> &nbsp;to apply</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SUCCESS -->
+  <div th:if="${success}" class="alert-success-custom">
+    <i class="bi bi-check-circle-fill"></i>
+    <span th:text="${success}">Application submitted!</span>
+  </div>
+
+  <!-- MASONRY CARDS -->
+  <section class="cards-section">
+
+    <div th:if="${#lists.isEmpty(companyList)}" class="empty-state">
+      <i class="bi bi-briefcase"></i>
+      <p>No listings available right now. Check back soon!</p>
+    </div>
+
+    <div class="masonry" th:if="${not #lists.isEmpty(companyList)}">
+
+      <div th:each="company, stat : ${companyList}"
+           class="job-card"
+           th:style="'animation-delay:' + ${stat.index * 70} + 'ms'">
+
+        <div class="card-number" th:text="'#' + ${stat.count}">01</div>
+
+        <div class="card-top">
+          <div class="company-badge" th:text="${#strings.substring(company.companyName, 0, 1)}">A</div>
+          <span class="new-badge" th:if="${stat.index < 3}">New</span>
+        </div>
+
+        <div class="card-company" th:text="${company.companyName}">Company Name</div>
+        <div class="card-title" th:text="${company.jobtitle}">Job Title Here</div>
+
+        <div class="card-tags">
+          <span class="card-tag"><i class="bi bi-geo-alt"></i><span th:text="${company.location}">Location</span></span>
+          <span class="card-tag highlight"><i class="bi bi-currency-rupee"></i><span th:text="${company.salary}">Salary</span></span>
+          <span class="card-tag"><i class="bi bi-clock"></i> Full Time</span>
+        </div>
+
+        <div class="card-footer-row">
+          <a th:href="@{/user/apply/{id}(id=${company.id})}" class="apply-btn">
+            Apply Now <i class="bi bi-arrow-right"></i>
+          </a>
+          <a href="#" class="save-btn"><i class="bi bi-bookmark"></i></a>
+        </div>
+
+      </div>
+
+    </div>
+  </section>
+
+  <footer>
+    <span class="footer-brand">JobPortal</span>
+    <span>© 2026 · All Rights Reserved</span>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

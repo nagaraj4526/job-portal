@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Add Company</title>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary:    #0a0a0f;
+            --bg-secondary:  #111118;
+            --bg-card:       #16161f;
+            --bg-input:      #1c1c28;
+            --accent:        #7c5cfc;
+            --accent-glow:   rgba(124,92,252,0.35);
+            --accent-soft:   rgba(124,92,252,0.12);
+            --text-primary:  #f0eeff;
+            --text-secondary:#8b89a8;
+            --text-muted:    #4a4868;
+            --border:        #2a2840;
+            --border-focus:  #7c5cfc;
+            --success-bg:    #0d2418;
+            --success-text:  #4ade80;
+            --success-border:#166534;
+            --danger:        #f87171;
+            --warning:       #fbbf24;
+        }
+
+        * { margin:0; padding:0; box-sizing:border-box; }
+
+        body {
+            min-height: 100vh;
+            background: var(--bg-primary);
+            display: flex;
+            font-family: 'DM Sans', sans-serif;
+            color: var(--text-primary);
+            overflow: hidden;
+        }
+
+        /* ════════════════════════════════
+           LEFT PANEL
+        ════════════════════════════════ */
+        .left-panel {
+            width: 380px; min-height: 100vh;
+            background: var(--bg-secondary);
+            border-right: 1px solid var(--border);
+            display: flex; flex-direction: column;
+            padding: 48px 40px;
+            position: relative; overflow: hidden; flex-shrink: 0;
+        }
+        .left-panel::before {
+            content:''; position:absolute; top:-120px; left:-80px;
+            width:320px; height:320px;
+            background: radial-gradient(circle,rgba(124,92,252,.18) 0%,transparent 70%);
+            pointer-events:none;
+        }
+        .left-panel::after {
+            content:''; position:absolute; bottom:-80px; right:-60px;
+            width:260px; height:260px;
+            background: radial-gradient(circle,rgba(92,140,252,.12) 0%,transparent 70%);
+            pointer-events:none;
+        }
+        .brand { display:flex; align-items:center; gap:12px; margin-bottom:60px; position:relative; z-index:1; }
+        .brand-icon {
+            width:36px; height:36px; background:var(--accent); border-radius:10px;
+            display:flex; align-items:center; justify-content:center;
+            box-shadow:0 0 20px var(--accent-glow);
+        }
+        .brand-icon svg { width:18px; height:18px; fill:white; }
+        .brand-name {
+            font-family:'Space Mono',monospace; font-size:14px; font-weight:700;
+            letter-spacing:2px; text-transform:uppercase; color:var(--text-primary);
+        }
+        .panel-title { font-size:32px; font-weight:600; line-height:1.25; margin-bottom:14px; position:relative; z-index:1; }
+        .panel-title span { color:var(--accent); }
+        .panel-subtitle { font-size:14px; color:var(--text-secondary); line-height:1.7; position:relative; z-index:1; }
+        .divider { width:40px; height:2px; background:var(--accent); margin:28px 0; border-radius:2px; position:relative; z-index:1; }
+        .steps { display:flex; flex-direction:column; gap:20px; position:relative; z-index:1; flex:1; }
+        .step { display:flex; align-items:flex-start; gap:14px; }
+        .step-num {
+            width:28px; height:28px; border-radius:8px;
+            background:var(--accent-soft); border:1px solid rgba(124,92,252,.3);
+            display:flex; align-items:center; justify-content:center;
+            font-family:'Space Mono',monospace; font-size:11px; color:var(--accent);
+            flex-shrink:0; margin-top:2px;
+        }
+        .step-text { font-size:13px; color:var(--text-secondary); line-height:1.6; }
+        .step-text strong { color:var(--text-primary); display:block; font-size:14px; margin-bottom:2px; }
+        .panel-footer { position:relative; z-index:1; margin-top:40px; }
+        .table-link {
+            display:inline-flex; align-items:center; gap:8px;
+            padding:10px 18px; background:transparent;
+            border:1px solid var(--border); border-radius:10px;
+            color:var(--text-secondary); text-decoration:none;
+            font-size:13px; font-weight:500; transition:all .25s ease;
+        }
+        .table-link:hover { border-color:var(--accent); color:var(--accent); background:var(--accent-soft); }
+        .table-link svg { width:14px; height:14px; stroke:currentColor; }
+
+        /* ════════════════════════════════
+           RIGHT PANEL
+        ════════════════════════════════ */
+        .right-panel {
+            flex:1; display:flex; align-items:center; justify-content:center;
+            padding:48px; position:relative; overflow:hidden;
+        }
+        .right-panel::before {
+            content:''; position:absolute; inset:0;
+            background-image: radial-gradient(circle,var(--text-muted) 1px,transparent 1px);
+            background-size:32px 32px; opacity:.25; pointer-events:none;
+        }
+        .form-card {
+            width:100%; max-width:480px;
+            background:var(--bg-card); border:1px solid var(--border);
+            border-radius:20px; padding:40px;
+            position:relative; z-index:1;
+            box-shadow:0 0 0 1px rgba(255,255,255,.03),0 20px 60px rgba(0,0,0,.4);
+            animation:slideUp .6s cubic-bezier(.22,1,.36,1) both;
+        }
+        @keyframes slideUp {
+            from { opacity:0; transform:translateY(24px); }
+            to   { opacity:1; transform:translateY(0); }
+        }
+        .card-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:32px; }
+        .card-title {
+            font-family:'Space Mono',monospace; font-size:11px;
+            letter-spacing:2.5px; text-transform:uppercase; color:var(--text-muted);
+        }
+        .card-badge {
+            padding:4px 10px; background:var(--accent-soft);
+            border:1px solid rgba(124,92,252,.25); border-radius:20px;
+            font-size:11px; color:var(--accent); font-weight:500;
+        }
+        .alert {
+            padding:12px 16px; margin-bottom:24px; border-radius:10px;
+            font-size:13px; display:flex; align-items:center; gap:10px;
+        }
+        .alert-success { background-color:var(--success-bg); color:var(--success-text); border:1px solid var(--success-border); }
+        .fields-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px; }
+        .field-full { grid-column:1/-1; }
+        .input-group { display:flex; flex-direction:column; gap:7px; }
+        .input-label { font-size:11px; font-weight:600; letter-spacing:1.2px; text-transform:uppercase; color:var(--text-muted); }
+        .input-wrapper { position:relative; display:flex; align-items:center; }
+        .input-icon {
+            position:absolute; left:14px; z-index:2;
+            width:15px; height:15px; stroke:var(--text-muted);
+            pointer-events:none; transition:stroke .2s ease;
+        }
+        .input-wrapper:focus-within .input-icon { stroke:var(--accent); }
+        input {
+            width:100%; padding:11px 14px 11px 40px;
+            background:var(--bg-input); border:1px solid var(--border);
+            border-radius:10px; font-family:'DM Sans',sans-serif;
+            font-size:14px; color:var(--text-primary);
+            transition:all .2s ease; outline:none;
+        }
+        input::placeholder { color:var(--text-muted); }
+        input:focus { border-color:var(--border-focus); background:#1f1f2e; box-shadow:0 0 0 3px var(--accent-glow); }
+        .submit-row { margin-top:28px; display:flex; gap:12px; align-items:center; }
+        .btn-save {
+            flex:1; padding:13px; background:var(--accent); border:none;
+            border-radius:11px; color:white; font-family:'DM Sans',sans-serif;
+            font-size:14px; font-weight:600; cursor:pointer;
+            transition:all .25s ease; box-shadow:0 4px 20px var(--accent-glow);
+            position:relative; overflow:hidden;
+        }
+        .btn-save::before {
+            content:''; position:absolute; top:0; left:-100%;
+            width:100%; height:100%;
+            background:linear-gradient(90deg,transparent,rgba(255,255,255,.12),transparent);
+            transition:left .5s ease;
+        }
+        .btn-save:hover::before { left:100%; }
+        .btn-save:hover { background:#6b4de8; transform:translateY(-1px); box-shadow:0 8px 28px rgba(124,92,252,.5); }
+        .btn-save:active { transform:translateY(0); }
+        .btn-reset {
+            padding:13px 18px; background:transparent;
+            border:1px solid var(--border); border-radius:11px;
+            color:var(--text-secondary); font-family:'DM Sans',sans-serif;
+            font-size:14px; cursor:pointer; transition:all .2s ease;
+        }
+        .btn-reset:hover { border-color:var(--text-muted); color:var(--text-primary); }
+        .btn-view-table {
+            padding:13px 16px; background:transparent;
+            border:1px solid var(--border); border-radius:11px;
+            color:var(--text-secondary); font-family:'DM Sans',sans-serif;
+            font-size:13px; font-weight:500;
+            transition:all .2s ease;
+            display:inline-flex; align-items:center; gap:6px;
+            white-space:nowrap; cursor:pointer; border-style:solid;
+        }
+        .btn-view-table svg { width:14px; height:14px; stroke:currentColor; }
+        .btn-view-table:hover { border-color:var(--accent); color:var(--accent); background:var(--accent-soft); }
+
+        /* ════════════════════════════════
+           MODAL OVERLAY
+        ════════════════════════════════ */
+        .modal-overlay {
+            position:fixed; inset:0;
+            background:rgba(4,4,10,.88);
+            backdrop-filter:blur(10px);
+            -webkit-backdrop-filter:blur(10px);
+            z-index:300;
+            display:flex; align-items:center; justify-content:center;
+            padding:24px;
+            opacity:0; pointer-events:none;
+            transition:opacity .3s ease;
+        }
+        .modal-overlay.open { opacity:1; pointer-events:all; }
+
+        .modal-box {
+            width:100%; max-width:960px;
+            height:82vh;
+            background:var(--bg-card);
+            border:1px solid var(--border);
+            border-radius:20px;
+            display:flex; flex-direction:column;
+            box-shadow:
+                0 0 0 1px rgba(255,255,255,.04),
+                0 40px 100px rgba(0,0,0,.7),
+                0 0 80px rgba(124,92,252,.1);
+            transform:translateY(30px) scale(.97);
+            transition:transform .38s cubic-bezier(.22,1,.36,1);
+            overflow:hidden;
+        }
+        .modal-overlay.open .modal-box { transform:translateY(0) scale(1); }
+
+        /* ── Modal Header ── */
+        .modal-header {
+            display:flex; align-items:center; justify-content:space-between;
+            padding:16px 24px;
+            border-bottom:1px solid var(--border);
+            background:var(--bg-secondary);
+            flex-shrink:0;
+        }
+        .modal-header-left { display:flex; align-items:center; gap:12px; }
+        .modal-header-icon {
+            width:34px; height:34px;
+            background:var(--accent-soft);
+            border:1px solid rgba(124,92,252,.3);
+            border-radius:9px;
+            display:flex; align-items:center; justify-content:center;
+        }
+        .modal-header-icon svg { width:16px; height:16px; stroke:var(--accent); }
+        .modal-header-title {
+            font-family:'Space Mono',monospace;
+            font-size:13px; font-weight:700;
+            letter-spacing:1.5px; text-transform:uppercase;
+            color:var(--text-primary);
+        }
+        .modal-header-sub { font-size:11px; color:var(--text-muted); margin-top:1px; }
+        .modal-header-right { display:flex; align-items:center; gap:8px; }
+        .modal-open-btn {
+            display:inline-flex; align-items:center; gap:6px;
+            padding:7px 14px;
+            background:var(--accent-soft);
+            border:1px solid rgba(124,92,252,.3);
+            border-radius:8px; color:var(--accent);
+            font-family:'DM Sans',sans-serif;
+            font-size:12px; font-weight:600;
+            text-decoration:none; cursor:pointer;
+            transition:all .2s ease;
+        }
+        .modal-open-btn:hover { background:var(--accent); color:white; }
+        .modal-open-btn svg { width:12px; height:12px; stroke:currentColor; }
+        .modal-close-btn {
+            width:32px; height:32px;
+            background:var(--bg-input); border:1px solid var(--border);
+            border-radius:8px; cursor:pointer;
+            display:flex; align-items:center; justify-content:center;
+            color:var(--text-secondary); transition:all .2s ease;
+        }
+        .modal-close-btn:hover { background:#2a1f3d; border-color:var(--accent); color:var(--accent); }
+        .modal-close-btn svg { width:14px; height:14px; stroke:currentColor; }
+
+        /* ── Scrollable Table Body ── */
+        .modal-body {
+            flex:1;
+            overflow-y:auto;
+            overflow-x:auto;
+            min-height:0;
+            /* custom scrollbar */
+            scrollbar-width:thin;
+            scrollbar-color:var(--border) transparent;
+        }
+        .modal-body::-webkit-scrollbar { width:6px; height:6px; }
+        .modal-body::-webkit-scrollbar-track { background:transparent; }
+        .modal-body::-webkit-scrollbar-thumb { background:var(--border); border-radius:10px; }
+        .modal-body::-webkit-scrollbar-thumb:hover { background:var(--accent); }
+
+        /* ── Table ── */
+        .company-table {
+            width:100%; border-collapse:collapse; font-size:13px;
+            min-width:620px;
+        }
+        .company-table thead {
+            position:sticky; top:0; z-index:10;
+            background:var(--bg-secondary);
+        }
+        .company-table thead th {
+            padding:14px 20px;
+            text-align:left;
+            font-family:'Space Mono',monospace;
+            font-size:10px; letter-spacing:1.8px; text-transform:uppercase;
+            color:var(--text-muted);
+            border-bottom:1px solid var(--border);
+            white-space:nowrap;
+        }
+        .company-table thead th:first-child { padding-left:28px; }
+        .company-table thead th:last-child  { padding-right:28px; text-align:center; }
+
+        .company-table tbody tr {
+            border-bottom:1px solid rgba(42,40,64,.5);
+            transition:background .15s ease;
+        }
+        .company-table tbody tr:hover { background:rgba(124,92,252,.05); }
+        .company-table tbody tr:last-child { border-bottom:none; }
+
+        .company-table tbody td {
+            padding:14px 20px;
+            color:var(--text-secondary);
+            vertical-align:middle;
+        }
+        .company-table tbody td:first-child { padding-left:28px; }
+        .company-table tbody td:last-child  { padding-right:28px; text-align:center; }
+
+        /* ID badge */
+        .td-id {
+            font-family:'Space Mono',monospace;
+            font-size:11px; color:var(--text-muted);
+        }
+		.modal-overlay{
+		    position:fixed;
+		    top:0;
+		    left:0;
+		    width:100%;
+		    height:100%;
+		    background:rgba(0,0,0,0.7);
+		    display:none;
+		    align-items:center;
+		    justify-content:center;
+		}
+
+		.modal-box{
+		    background:white;
+		    padding:20px;
+		    width:80%;
+		    max-height:80vh;
+		    overflow:auto;
+		}
+
+		.modal-header{
+		    display:flex;
+		    justify-content:space-between;
+		    margin-bottom:15px;
+		}
+        /* Company name */
+        .td-company {
+            display:flex; align-items:center; gap:10px;
+            font-weight:600; color:var(--text-primary);
+        }
+        .co-avatar {
+            width:30px; height:30px; border-radius:8px;
+            display:flex; align-items:center; justify-content:center;
+            font-family:'Space Mono',monospace; font-size:10px; font-weight:700;
+            flex-shrink:0; background:var(--accent-soft); color:var(--accent);
+            border:1px solid rgba(124,92,252,.25);
+        }
+        /* Job title badge */
+        .td-role {
+            display:inline-block;
+            padding:3px 10px;
+            background:rgba(124,92,252,.1);
+            border:1px solid rgba(124,92,252,.2);
+            border-radius:6px;
+            font-size:12px; color:#a78bfa;
+        }
+        /* Location */
+        .td-location {
+            display:flex; align-items:center; gap:5px; color:var(--text-secondary);
+        }
+        .td-location svg { width:12px; height:12px; stroke:var(--text-muted); flex-shrink:0; }
+        /* Salary */
+        .td-salary {
+            font-family:'Space Mono',monospace; font-size:12px; color:var(--success-text);
+        }
+        /* Action buttons */
+        .action-wrap { display:flex; align-items:center; justify-content:center; gap:8px; }
+        .btn-edit, .btn-delete {
+            display:inline-flex; align-items:center; gap:5px;
+            padding:6px 12px; border-radius:7px;
+            font-family:'DM Sans',sans-serif; font-size:12px; font-weight:600;
+            text-decoration:none; cursor:pointer; border:none;
+            transition:all .2s ease; white-space:nowrap;
+        }
+        .btn-edit {
+            background:rgba(251,191,36,.1); color:var(--warning);
+            border:1px solid rgba(251,191,36,.25);
+        }
+        .btn-edit:hover { background:var(--warning); color:#1a1200; }
+        .btn-edit svg { width:12px; height:12px; stroke:currentColor; }
+        .btn-delete {
+            background:rgba(248,113,113,.1); color:var(--danger);
+            border:1px solid rgba(248,113,113,.25);
+        }
+        .btn-delete:hover { background:var(--danger); color:#1a0000; }
+        .btn-delete svg { width:12px; height:12px; stroke:currentColor; }
+
+        /* empty state */
+        .table-empty {
+            padding:60px 20px;
+            text-align:center; color:var(--text-muted);
+        }
+        .table-empty svg { width:40px; height:40px; stroke:var(--text-muted); opacity:.4; margin-bottom:12px; }
+        .table-empty p { font-size:13px; }
+
+        /* ── Modal Footer ── */
+        .modal-footer {
+            padding:12px 24px;
+            border-top:1px solid var(--border);
+            display:flex; align-items:center; justify-content:space-between;
+            background:var(--bg-secondary); flex-shrink:0;
+        }
+        .modal-footer-info {
+            display:flex; align-items:center; gap:6px;
+            font-family:'Space Mono',monospace; font-size:11px; color:var(--text-muted);
+        }
+        .status-dot {
+            width:6px; height:6px; border-radius:50%;
+            background:var(--success-text); box-shadow:0 0 6px var(--success-text);
+        }
+        .row-count {
+            padding:2px 8px;
+            background:var(--accent-soft); border:1px solid rgba(124,92,252,.2);
+            border-radius:10px; font-size:11px; color:var(--accent);
+        }
+        .modal-footer-hint { font-size:11px; color:var(--text-muted); }
+        .modal-footer-hint kbd {
+            padding:2px 6px; background:var(--bg-input);
+            border:1px solid var(--border); border-radius:4px;
+            font-size:10px; color:var(--text-secondary);
+        }
+
+        /* responsive */
+        @media (max-width:800px) {
+            body { flex-direction:column; overflow:auto; }
+            .left-panel { width:100%; min-height:auto; padding:32px 28px; }
+            .right-panel { padding:28px; }
+            .fields-grid { grid-template-columns:1fr; }
+            .modal-box { height:90vh; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ════════════════════════════════
+     LEFT PANEL
+════════════════════════════════ -->
+<div class="left-panel">
+    <div class="brand">
+        <div class="brand-icon">
+            <svg viewBox="0 0 20 20"><path d="M10 2L2 7v6l8 5 8-5V7L10 2z"/></svg>
+        </div>
+        <span class="brand-name">JobPortal</span>
+    </div>
+
+    <h1 class="panel-title">Register a <span>New Company</span> Listing</h1>
+    <p class="panel-subtitle">Add your company's job opportunity to the portal. Fill in accurate details to attract the right candidates.</p>
+
+    <div class="divider"></div>
+
+    <div class="steps">
+        <div class="step">
+            <div class="step-num">01</div>
+            <div class="step-text">
+                <strong>Company Info</strong>
+                Enter the official company name and job title for the position.
+            </div>
+        </div>
+        <div class="step">
+            <div class="step-num">02</div>
+            <div class="step-text">
+                <strong>Location &amp; Package</strong>
+                Specify the work location and the offered salary.
+            </div>
+        </div>
+        <div class="step">
+            <div class="step-num">03</div>
+            <div class="step-text">
+                <strong>Save &amp; Review</strong>
+                Submit and verify the entry in the listings table.
+            </div>
+        </div>
+    </div>
+
+    <div class="panel-footer">
+        <a th:href="@{/table}" href="/table" class="table-link">
+            <svg fill="none" viewBox="0 0 24 24" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M3 6h18M3 14h18M3 18h18"/>
+            </svg>
+            View All Listings
+        </a>
+    </div>
+</div>
+
+<!-- ════════════════════════════════
+     RIGHT PANEL — FORM
+════════════════════════════════ -->
+<div class="right-panel">
+    <div class="form-card">
+
+        <div class="card-header">
+            <span class="card-title">New Entry</span>
+            <span class="card-badge">+ Add Company</span>
+        </div>
+
+        <div th:if="${success}" class="alert alert-success">
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+            </svg>
+            <span th:text="${success}">Company saved successfully!</span>
+        </div>
+
+        <form method="post" th:object="${company}" th:action="@{/admin/company}">
+
+            <div class="fields-grid">
+
+                <div class="input-group field-full">
+                    <label class="input-label">Company Name</label>
+                    <div class="input-wrapper">
+                        <svg class="input-icon" fill="none" viewBox="0 0 24 24" stroke-width="1.8">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 21v-3.375c0-.621.504-1.125 1.125-1.125h3.75c.621 0 1.125.504 1.125 1.125V21"/>
+                        </svg>
+                        <input type="text" placeholder="e.g. Infosys, TCS, Wipro" required th:field="*{companyName}">
+                    </div>
+                </div>
+
+                <div class="input-group field-full">
+                    <label class="input-label">Job Title</label>
+                    <div class="input-wrapper">
+                        <svg class="input-icon" fill="none" viewBox="0 0 24 24" stroke-width="1.8">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M20.25 14.15v4.25c0 1.094-.787 2.036-1.872 2.18-2.087.277-4.216.42-6.378.42s-4.291-.143-6.378-.42c-1.085-.144-1.872-1.086-1.872-2.18v-4.25m16.5 0a2.18 2.18 0 00.75-1.661V8.706c0-1.081-.768-2.015-1.837-2.175a48.114 48.114 0 00-3.413-.387m4.5 8.006c-.194.165-.42.295-.673.38A23.978 23.978 0 0112 15.75c-2.648 0-5.195-.429-7.577-1.22a2.016 2.016 0 01-.673-.38m0 0A2.18 2.18 0 013 12.489V8.706c0-1.081.768-2.015 1.837-2.175a48.111 48.111 0 013.413-.387m7.5 0V5.25A2.25 2.25 0 0013.5 3h-3a2.25 2.25 0 00-2.25 2.25v.894m7.5 0a48.667 48.667 0 00-7.5 0"/>
+                        </svg>
+                        <input type="text" placeholder="e.g. Software Engineer" required th:field="*{jobtitle}">
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label class="input-label">Location</label>
+                    <div class="input-wrapper">
+                        <svg class="input-icon" fill="none" viewBox="0 0 24 24" stroke-width="1.8">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z"/>
+                        </svg>
+                        <input type="text" placeholder="e.g. Chennai" required th:field="*{location}">
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label class="input-label">Salary (&#8377;)</label>
+                    <div class="input-wrapper">
+                        <svg class="input-icon" fill="none" viewBox="0 0 24 24" stroke-width="1.8">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33"/>
+                        </svg>
+                        <input type="number" placeholder="e.g. 800000" required th:field="*{salary}">
+                    </div>
+                </div>
+
+            </div>
+
+			<div class="submit-row">
+			    <button type="reset" class="btn-reset">Reset</button>
+
+			    <button type="button" onclick="openTableModal()" class="btn-view-table">
+			        View Companies
+			    </button>
+
+			    <a href="/adminApplications" class="btn-view-table">
+			        Applications
+			    </a>
+
+			    <button type="submit" class="btn-save">
+			        Save Company →
+			    </button>
+			</div>
+        </form>
+    </div>
+</div>
+
+<!-- ════════════════════════════════
+     TABLE MODAL
+     — renders live Thymeleaf data
+     — scrollable tbody
+════════════════════════════════ -->
+<div class="modal-overlay" id="tableModal" onclick="handleOverlayClick(event)">
+    <div class="modal-box">
+
+        <!-- Header -->
+        <div class="modal-header">
+            <div class="modal-header-left">
+                <div class="modal-header-icon">
+                    <svg fill="none" viewBox="0 0 24 24" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M3 6h18M3 14h18M3 18h18"/>
+                    </svg>
+                </div>
+                <div>
+                    <div class="modal-header-title">Company Listings</div>
+                    <div class="modal-header-sub">Live data &mdash; all registered jobs</div>
+                </div>
+            </div>
+          
+        </div>
+		
+
+       
+                    <!-- Thymeleaf renders your real DB rows here -->
+					
+					<!-- TABLE MODAL -->
+					<div id="tableModal" class="modal-overlay">
+
+					    <div class="modal-box">
+
+					        <!-- Header -->
+					        <div class="modal-header">
+					            <h3>Company Listings</h3>
+					            <button onclick="closeTableModal()">X</button>
+					        </div>
+
+					        <!-- Table -->
+					        <div class="modal-body">
+
+					            <table border="1" width="100%">
+					                <thead>
+					                    <tr>
+					                        <th>ID</th>
+					                        <th>Company</th>
+					                        <th>Job Title</th>
+					                        <th>Location</th>
+					                        <th>Salary</th>
+					                        <th>Action</th>
+					                    </tr>
+					                </thead>
+
+					                <!-- YOUR EXISTING TABLE CODE -->
+					                <tbody>
+
+					                <tr th:each="company : ${companyList}">
+					                    
+					                    <td>
+					                        <span th:text="${company.id}">1</span>
+					                    </td>
+
+					                    <td>
+					                        <span th:text="${company.companyName}">Company</span>
+					                    </td>
+
+					                    <td>
+					                        <span th:text="${company.jobtitle}">Role</span>
+					                    </td>
+
+					                    <td>
+					                        <span th:text="${company.location}">Location</span>
+					                    </td>
+
+					                    <td>
+					                        ₹ <span th:text="${company.salary}">0</span>
+					                    </td>
+
+					                    <td>
+					                        <a th:href="@{/admin/edit/{id}(id=${company.id})}">Edit</a>
+
+					                        <a th:href="@{/admin/delete/{id}(id=${company.id})}"
+					                           onclick="return confirm('Delete this job?')">
+					                           Delete
+					                        </a>
+					                    </td>
+
+					                </tr>
+
+					                <tr th:if="${#lists.isEmpty(companyList)}">
+					                    <td colspan="6">No company records found</td>
+					                </tr>
+
+					                </tbody>
+
+					            </table>
+
+					        </div>
+
+					    </div>
+
+					</div>            </table>
+        </div>
+
+        <!-- Footer -->
+        <div class="modal-footer">
+            <div class="modal-footer-info">
+                <span class="status-dot"></span>
+                Live &nbsp;&mdash;&nbsp;
+                <span class="row-count"
+                      th:text="${companyList != null ? companyList.size() + ' records' : '0 records'}">
+                    0 records
+                </span>
+            </div>
+            <div class="modal-footer-hint">
+                Press <kbd>Esc</kbd> to close &nbsp;|&nbsp; Scroll inside table
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    const overlay = document.getElementById('tableModal');
+
+   
+
+    function handleOverlayClick(e) {
+        if (e.target === overlay) closeTableModal();
+    }
+
+	function openTableModal() {
+	    document.getElementById("tableModal").style.display = "flex";
+	}
+
+	function closeTableModal() {
+	    document.getElementById("tableModal").style.display = "none";
+	}
+
+    document.addEventListener('keydown', e => {
+        if (e.key === 'Escape') closeTableModal();
+    });
+	
+</script>
+
+</body>
+</html>

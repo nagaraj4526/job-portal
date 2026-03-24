@@ -1,0 +1,1281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Job Portal System</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Clash+Display:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&family=Manrope:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --ink:    #0a0a0f;
+      --ink2:   #13131c;
+      --ink3:   #1c1c2e;
+      --gold:   #f5c842;
+      --gold2:  #e8a800;
+      --teal:   #00d4aa;
+      --muted:  rgba(255,255,255,0.45);
+      --border: rgba(255,255,255,0.08);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin:0; padding:0; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--ink);
+      font-family: 'Manrope', sans-serif;
+      color: #fff;
+      overflow-x: hidden;
+    }
+
+    /* ── GRAIN OVERLAY ── */
+    body::before {
+      content: '';
+      position: fixed; inset: 0; z-index: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+      opacity: 0.025;
+      pointer-events: none;
+    }
+
+    /* ── NAVBAR ── */
+    .navbar {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+      padding: 18px 0;
+      background: transparent;
+      transition: background 0.4s, backdrop-filter 0.4s, border-bottom 0.4s;
+    }
+    .navbar.scrolled {
+      background: rgba(10,10,15,0.92);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+    }
+    .navbar-brand {
+      font-family: 'Clash Display', sans-serif;
+      font-size: 1.35rem;
+      font-weight: 700;
+      color: #fff !important;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .brand-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: var(--gold);
+      display: inline-block;
+      animation: pulse-dot 2s ease-in-out infinite;
+    }
+    @keyframes pulse-dot {
+      0%,100% { transform: scale(1); opacity:1; }
+      50% { transform: scale(1.4); opacity:0.7; }
+    }
+    .nav-link {
+      color: var(--muted) !important;
+      font-size: 0.875rem;
+      font-weight: 500;
+      letter-spacing: 0.04em;
+      transition: color 0.2s;
+      position: relative;
+      padding-bottom: 4px !important;
+    }
+    .nav-link::after {
+      content: '';
+      position: absolute; bottom:0; left:0;
+      width:0; height:1.5px;
+      background: var(--gold);
+      transition: width 0.3s;
+    }
+    .nav-link:hover { color: #fff !important; }
+    .nav-link:hover::after { width: 100%; }
+    .nav-link.active { color: #fff !important; }
+    .nav-link.active::after { width: 100%; }
+
+    .btn-user-nav {
+      background: transparent;
+      color: #fff;
+      border: 1.5px solid rgba(255,255,255,0.3);
+      border-radius: 8px;
+      padding: 7px 18px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      transition: all 0.25s;
+    }
+    .btn-user-nav:hover {
+      background: rgba(255,255,255,0.1);
+      border-color: rgba(255,255,255,0.6);
+      color: #fff;
+    }
+    .btn-admin-nav {
+      background: var(--gold);
+      color: var(--ink);
+      border: none;
+      border-radius: 8px;
+      padding: 7px 18px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      transition: all 0.25s;
+    }
+    .btn-admin-nav:hover {
+      background: var(--gold2);
+      color: var(--ink);
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(245,200,66,0.35);
+    }
+
+    /* ── HERO ── */
+    .hero {
+      min-height: 100vh;
+      display: flex; align-items: center; justify-content: center;
+      position: relative;
+      overflow: hidden;
+      padding: 120px 20px 80px;
+    }
+
+    .hero-blob {
+      position: absolute; border-radius: 50%;
+      filter: blur(90px); pointer-events: none;
+    }
+    .blob-1 {
+      width: 600px; height: 600px;
+      background: radial-gradient(circle, rgba(0,212,170,0.18) 0%, transparent 70%);
+      top: -100px; right: -150px;
+      animation: blob-move 12s ease-in-out infinite alternate;
+    }
+    .blob-2 {
+      width: 500px; height: 500px;
+      background: radial-gradient(circle, rgba(245,200,66,0.14) 0%, transparent 70%);
+      bottom: -80px; left: -100px;
+      animation: blob-move 15s ease-in-out infinite alternate-reverse;
+    }
+    .blob-3 {
+      width: 300px; height: 300px;
+      background: radial-gradient(circle, rgba(100,80,255,0.15) 0%, transparent 70%);
+      top: 40%; left: 50%;
+      animation: blob-move 10s ease-in-out infinite alternate;
+    }
+    @keyframes blob-move {
+      from { transform: translate(0,0) scale(1); }
+      to   { transform: translate(40px,30px) scale(1.1); }
+    }
+
+    .hero-grid {
+      position: absolute; inset: 0; pointer-events: none;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+      background-size: 60px 60px;
+    }
+
+    .hero-content { position: relative; z-index: 2; text-align: center; }
+
+    .hero-eyebrow {
+      display: inline-flex; align-items: center; gap: 8px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.04);
+      border-radius: 40px;
+      padding: 6px 16px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--teal);
+      margin-bottom: 28px;
+      animation: fadeInDown 0.6s ease both;
+    }
+    .eyebrow-dot { width:6px;height:6px;border-radius:50%;background:var(--teal); }
+
+    .hero-title {
+      font-family: 'Clash Display', sans-serif;
+      font-size: clamp(3rem, 8vw, 7rem);
+      font-weight: 700;
+      line-height: 1;
+      letter-spacing: -0.03em;
+      animation: fadeInDown 0.7s 0.1s ease both;
+    }
+    .hero-title em {
+      font-family: 'Instrument Serif', serif;
+      font-style: italic;
+      color: var(--gold);
+    }
+
+    .hero-sub {
+      color: var(--muted);
+      font-size: 1.1rem;
+      font-weight: 400;
+      max-width: 500px;
+      margin: 22px auto 0;
+      line-height: 1.7;
+      animation: fadeInDown 0.7s 0.2s ease both;
+    }
+
+    .hero-stats {
+      display: flex; justify-content: center; gap: 40px;
+      margin: 48px 0;
+      animation: fadeInDown 0.7s 0.3s ease both;
+    }
+    .stat-item { text-align: center; }
+    .stat-num {
+      font-family: 'Clash Display', sans-serif;
+      font-size: 2rem;
+      font-weight: 700;
+      color: #fff;
+      line-height: 1;
+    }
+    .stat-num span { color: var(--gold); }
+    .stat-label {
+      font-size: 0.72rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+    .stat-divider { width:1px; background: var(--border); }
+
+    .search-wrap {
+      max-width: 640px;
+      margin: 0 auto;
+      animation: fadeInDown 0.7s 0.4s ease both;
+    }
+    .search-inner {
+      display: flex;
+      background: rgba(255,255,255,0.06);
+      border: 1.5px solid rgba(255,255,255,0.12);
+      border-radius: 16px;
+      overflow: hidden;
+      backdrop-filter: blur(10px);
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .search-inner:focus-within {
+      border-color: rgba(245,200,66,0.5);
+      box-shadow: 0 0 0 4px rgba(245,200,66,0.08);
+    }
+    .search-inner input {
+      flex:1;
+      background: transparent;
+      border: none;
+      outline: none;
+      padding: 16px 20px;
+      color: #fff;
+      font-family: 'Manrope', sans-serif;
+      font-size: 0.95rem;
+    }
+    .search-inner input::placeholder { color: rgba(255,255,255,0.3); }
+    .search-inner button {
+      background: var(--gold);
+      color: var(--ink);
+      border: none;
+      padding: 16px 28px;
+      font-family: 'Manrope', sans-serif;
+      font-weight: 700;
+      font-size: 0.9rem;
+      cursor: pointer;
+      display: flex; align-items: center; gap: 8px;
+      transition: background 0.2s, transform 0.15s;
+    }
+    .search-inner button:hover { background: var(--gold2); transform: translateX(2px); }
+
+    .search-hint {
+      margin-top: 14px;
+      font-size: 0.75rem;
+      color: var(--muted);
+      display: flex; justify-content: center; gap: 16px;
+    }
+    .hint-tag {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 4px 12px;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s;
+    }
+    .hint-tag:hover { background: rgba(255,255,255,0.12); color: #fff; }
+
+    @keyframes fadeInDown {
+      from { opacity:0; transform: translateY(-24px); }
+      to   { opacity:1; transform: translateY(0); }
+    }
+
+    /* ── SEARCH MODAL ── */
+    .modal-content {
+      background: var(--ink2);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      color: #fff;
+    }
+    .modal-header {
+      background: linear-gradient(135deg, var(--ink3), #0f0f1a);
+      border-bottom: 1px solid var(--border);
+      border-radius: 20px 20px 0 0;
+      padding: 20px 24px;
+    }
+    .modal-title { font-family: 'Clash Display', sans-serif; font-weight: 600; }
+    .modal-footer { border-top: 1px solid var(--border); }
+    .btn-close-white { filter: invert(1); }
+
+    .job-result-card {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 18px 20px;
+      margin-bottom: 12px;
+      transition: background 0.2s, border-color 0.2s;
+    }
+    .job-result-card:hover { background: rgba(255,255,255,0.07); border-color: rgba(255,255,255,0.15); }
+    .job-result-card h5 { font-family: 'Clash Display', sans-serif; font-size: 1.05rem; }
+    .job-result-card .meta { color: var(--muted); font-size: 0.83rem; margin-top: 6px; display:flex; gap:16px; flex-wrap:wrap; }
+    .job-salary { color: var(--teal); font-weight: 700; }
+
+    /* ── SECTION DIVIDER ── */
+    .section-divider {
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--border) 30%, var(--border) 70%, transparent);
+      margin: 0;
+    }
+
+    /* ── FEATURES ── */
+    #features {
+      background: #0d0d17;
+      padding: 100px 20px;
+      position: relative;
+    }
+    .section-label {
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--teal);
+      margin-bottom: 14px;
+    }
+    .section-title {
+      font-family: 'Clash Display', sans-serif;
+      font-size: clamp(2rem, 4vw, 3.2rem);
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      line-height: 1.1;
+      margin-bottom: 16px;
+    }
+    .section-title em {
+      font-family: 'Instrument Serif', serif;
+      font-style: italic;
+      color: var(--gold);
+    }
+    .section-sub { color: var(--muted); font-size: 0.95rem; max-width: 460px; margin: 0 auto; line-height: 1.7; }
+
+    .feature-card {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 36px 28px;
+      height: 100%;
+      transition: transform 0.3s, background 0.3s, border-color 0.3s, box-shadow 0.3s;
+      position: relative;
+      overflow: hidden;
+    }
+    .feature-card::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: linear-gradient(135deg, rgba(245,200,66,0.05), transparent 60%);
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    .feature-card:hover {
+      transform: translateY(-8px);
+      background: rgba(255,255,255,0.055);
+      border-color: rgba(255,255,255,0.15);
+      box-shadow: 0 20px 50px rgba(0,0,0,0.4);
+    }
+    .feature-card:hover::before { opacity: 1; }
+
+    .feature-icon {
+      width: 56px; height: 56px;
+      border-radius: 16px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.4rem;
+      margin-bottom: 22px;
+    }
+    .icon-gold { background: rgba(245,200,66,0.12); color: var(--gold); border: 1px solid rgba(245,200,66,0.2); }
+    .icon-teal { background: rgba(0,212,170,0.1); color: var(--teal); border: 1px solid rgba(0,212,170,0.2); }
+    .icon-purple { background: rgba(150,100,255,0.1); color: #a78bfa; border: 1px solid rgba(150,100,255,0.2); }
+    .icon-red  { background: rgba(248,113,113,0.1); color: #f87171; border: 1px solid rgba(248,113,113,0.2); }
+
+    .feature-card h5 {
+      font-family: 'Clash Display', sans-serif;
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-bottom: 10px;
+    }
+    .feature-card p { color: var(--muted); font-size: 0.875rem; line-height: 1.7; }
+    .feature-arrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      color: var(--gold);
+      margin-top: 18px;
+      opacity: 0;
+      transition: opacity 0.3s, gap 0.3s;
+    }
+    .feature-card:hover .feature-arrow { opacity: 1; gap: 10px; }
+
+    /* ── MARQUEE ── */
+    .marquee-section {
+      background: var(--gold);
+      padding: 16px 0;
+      overflow: hidden;
+      position: relative;
+    }
+    .marquee-track {
+      display: flex;
+      white-space: nowrap;
+      animation: marquee 25s linear infinite;
+    }
+    .marquee-track:hover { animation-play-state: paused; }
+    .marquee-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      margin-right: 48px;
+      font-family: 'Clash Display', sans-serif;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--ink);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+    .marquee-sep { color: rgba(10,10,15,0.35); }
+    @keyframes marquee {
+      from { transform: translateX(0); }
+      to   { transform: translateX(-50%); }
+    }
+
+    /* ── CONTACT ── */
+    #contact-section {
+      background: var(--ink);
+      padding: 100px 20px;
+      position: relative;
+    }
+
+    .contact-form-card {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 40px 36px;
+    }
+    .form-label-custom {
+      font-size: 0.8rem;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.6);
+      margin-bottom: 8px;
+    }
+    .form-control-custom {
+      background: rgba(255,255,255,0.04);
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      color: #fff;
+      padding: 12px 16px;
+      font-family: 'Manrope', sans-serif;
+      font-size: 0.9rem;
+      width: 100%;
+      transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+    }
+    .form-control-custom:focus {
+      outline: none;
+      border-color: rgba(245,200,66,0.4);
+      box-shadow: 0 0 0 4px rgba(245,200,66,0.08);
+      background: rgba(255,255,255,0.06);
+      color: #fff;
+    }
+    .form-control-custom::placeholder { color: rgba(255,255,255,0.25); }
+
+    .btn-send {
+      background: var(--gold);
+      color: var(--ink);
+      border: none;
+      border-radius: 12px;
+      padding: 14px 28px;
+      font-family: 'Manrope', sans-serif;
+      font-weight: 700;
+      font-size: 0.9rem;
+      width: 100%;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+    }
+    .btn-send:hover {
+      background: var(--gold2);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(245,200,66,0.3);
+    }
+
+    .contact-info-card {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 40px 36px;
+      height: 100%;
+    }
+    .contact-info-card h4 {
+      font-family: 'Clash Display', sans-serif;
+      font-size: 1.4rem;
+      margin-bottom: 28px;
+    }
+    .info-row {
+      display: flex; align-items: flex-start; gap: 14px;
+      margin-bottom: 20px;
+    }
+    .info-icon {
+      width: 40px; height: 40px;
+      border-radius: 10px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      color: var(--gold);
+      font-size: 0.9rem;
+    }
+    .info-text { font-size: 0.875rem; color: var(--muted); line-height: 1.6; }
+    .info-text strong { color: #fff; display: block; font-size: 0.8rem; letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 2px; }
+
+    .divider-line { height:1px; background: var(--border); margin: 28px 0; }
+
+    .social-btn {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 40px; height: 40px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--muted);
+      font-size: 1rem;
+      transition: background 0.2s, color 0.2s, border-color 0.2s;
+      margin-right: 8px;
+    }
+    .social-btn:hover { background: rgba(255,255,255,0.08); color: #fff; border-color: rgba(255,255,255,0.2); }
+
+    .hours-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+    .hour-item {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-size: 0.78rem;
+    }
+    .hour-day { color: var(--muted); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; }
+    .hour-time { color: #fff; font-weight: 600; margin-top: 2px; }
+
+    /* ══════════════════════════════════════════
+       ── CHATBOT SECTION ──
+    ══════════════════════════════════════════ */
+    #chatbot-section {
+      background: var(--ink);
+      padding: 100px 20px;
+      position: relative;
+    }
+
+    .chatbot-card {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      height: 520px;
+      position: relative;
+    }
+
+    /* Subtle glow accent on the card */
+    .chatbot-card::before {
+      content: '';
+      position: absolute;
+      top: -60px; right: -60px;
+      width: 200px; height: 200px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(245,200,66,0.08) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    /* ─ Header ─ */
+    .chatbot-header {
+      background: linear-gradient(135deg, var(--ink3), #0f0f1a);
+      border-bottom: 1px solid var(--border);
+      padding: 18px 24px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      flex-shrink: 0;
+    }
+    .chatbot-avatar {
+      width: 40px; height: 40px;
+      border-radius: 12px;
+      background: rgba(245,200,66,0.12);
+      border: 1px solid rgba(245,200,66,0.25);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.1rem;
+      color: var(--gold);
+      flex-shrink: 0;
+    }
+    .chatbot-header-info { flex: 1; }
+    .chatbot-header-name {
+      font-family: 'Clash Display', sans-serif;
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: #fff;
+      line-height: 1;
+    }
+    .chatbot-header-status {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      margin-top: 4px;
+    }
+    .status-dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--teal);
+      animation: pulse-dot 2s ease-in-out infinite;
+    }
+    .chatbot-header-status span {
+      font-size: 0.7rem;
+      color: var(--teal);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      font-weight: 600;
+    }
+
+    /* ─ Messages ─ */
+    #chat-box {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(255,255,255,0.1) transparent;
+    }
+    #chat-box::-webkit-scrollbar { width: 4px; }
+    #chat-box::-webkit-scrollbar-track { background: transparent; }
+    #chat-box::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 4px; }
+
+    /* Message bubbles */
+    .chat-msg {
+      display: flex;
+      gap: 10px;
+      animation: msgIn 0.25s ease both;
+    }
+    @keyframes msgIn {
+      from { opacity:0; transform: translateY(10px); }
+      to   { opacity:1; transform: translateY(0); }
+    }
+
+    .chat-msg.user {
+      flex-direction: row-reverse;
+    }
+    .msg-icon {
+      width: 28px; height: 28px;
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.7rem;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+    .msg-icon.bot-icon {
+      background: rgba(245,200,66,0.12);
+      border: 1px solid rgba(245,200,66,0.2);
+      color: var(--gold);
+    }
+    .msg-icon.user-icon {
+      background: rgba(0,212,170,0.1);
+      border: 1px solid rgba(0,212,170,0.2);
+      color: var(--teal);
+    }
+    .msg-bubble {
+      max-width: 75%;
+      padding: 10px 14px;
+      border-radius: 14px;
+      font-size: 0.875rem;
+      line-height: 1.6;
+    }
+    .chat-msg.bot .msg-bubble {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--border);
+      color: rgba(255,255,255,0.88);
+      border-bottom-left-radius: 4px;
+    }
+    .chat-msg.user .msg-bubble {
+      background: rgba(245,200,66,0.12);
+      border: 1px solid rgba(245,200,66,0.2);
+      color: #fff;
+      border-bottom-right-radius: 4px;
+    }
+
+    /* ─ Input area ─ */
+    .chatbot-input-area {
+      border-top: 1px solid var(--border);
+      padding: 16px 20px;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-shrink: 0;
+      background: rgba(255,255,255,0.02);
+    }
+    .chatbot-input-area input {
+      flex: 1;
+      background: rgba(255,255,255,0.05);
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      color: #fff;
+      padding: 11px 16px;
+      font-family: 'Manrope', sans-serif;
+      font-size: 0.875rem;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+    }
+    .chatbot-input-area input:focus {
+      border-color: rgba(245,200,66,0.4);
+      box-shadow: 0 0 0 4px rgba(245,200,66,0.07);
+      background: rgba(255,255,255,0.07);
+    }
+    .chatbot-input-area input::placeholder { color: rgba(255,255,255,0.25); }
+    .chatbot-send-btn {
+      width: 42px; height: 42px;
+      border-radius: 12px;
+      background: var(--gold);
+      color: var(--ink);
+      border: none;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.9rem;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+    }
+    .chatbot-send-btn:hover {
+      background: var(--gold2);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 18px rgba(245,200,66,0.3);
+    }
+    .chatbot-send-btn:active { transform: scale(0.95); }
+
+    /* Typing indicator */
+    .typing-indicator {
+      display: none;
+      align-items: center;
+      gap: 4px;
+      padding: 10px 14px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      border-bottom-left-radius: 4px;
+      width: fit-content;
+    }
+    .typing-indicator.visible { display: flex; }
+    .typing-indicator span {
+      width: 5px; height: 5px;
+      border-radius: 50%;
+      background: var(--muted);
+      animation: typingDot 1.2s ease-in-out infinite;
+    }
+    .typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
+    .typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes typingDot {
+      0%,60%,100% { transform: translateY(0); opacity:0.4; }
+      30% { transform: translateY(-5px); opacity:1; }
+    }
+
+    /* ── FOOTER ── */
+    footer {
+      background: var(--ink2);
+      border-top: 1px solid var(--border);
+      padding: 28px 20px;
+    }
+    .footer-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+    .footer-brand {
+      font-family: 'Clash Display', sans-serif;
+      font-size: 1rem;
+      font-weight: 600;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .footer-copy { font-size: 0.78rem; color: var(--muted); }
+    .footer-links { display: flex; gap: 20px; }
+    .footer-links a {
+      font-size: 0.78rem;
+      color: var(--muted);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .footer-links a:hover { color: #fff; }
+
+    @media (max-width: 768px) {
+      .hero-stats { gap: 24px; }
+      .stat-num { font-size: 1.5rem; }
+      .contact-form-card, .contact-info-card { padding: 28px 20px; }
+      .chatbot-card { height: 460px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ═══ NAVBAR ═══ -->
+<nav class="navbar navbar-expand-lg navbar-dark" id="mainNav">
+  <div class="container">
+    <a class="navbar-brand" href="#">
+      <span class="brand-dot"></span> JobPortal
+    </a>
+    <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarContent">
+      <ul class="navbar-nav me-auto ms-5">
+        <li class="nav-item"><a class="nav-link active" href="#">Home</a></li>
+        <li class="nav-item"><a class="nav-link" href="#features">About</a></li>
+        <li class="nav-item"><a class="nav-link" href="#contact-section">Contact</a></li>
+      </ul>
+	  <div class="d-flex gap-2 mt-2 mt-lg-0">
+	         <a href="#chatbot-section" class="btn-user-nav">
+	          Help
+	         </a>
+			 </div>
+      <div class="d-flex gap-2 mt-2 mt-lg-0">
+        <a href="login" class="btn-user-nav">
+          <i class="bi bi-person me-1"></i> User Login
+        </a>
+        <a href="adminlogin" class="btn-admin-nav">
+          <i class="bi bi-shield-lock me-1"></i> Admin
+        </a>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- ═══ HERO ═══ -->
+<section class="hero">
+  <div class="hero-grid"></div>
+  <div class="hero-blob blob-1"></div>
+  <div class="hero-blob blob-2"></div>
+  <div class="hero-blob blob-3"></div>
+
+  <div class="hero-content container">
+    <div class="hero-eyebrow">
+      <span class="eyebrow-dot"></span>
+      Now Live · 1000+ Opportunities
+    </div>
+
+    <h1 class="hero-title">
+      Find Your<br><em>Dream Job</em><br>Today
+    </h1>
+
+    <p class="hero-sub">
+      Search thousands of jobs from top companies across India.
+      Your next career move starts here.
+    </p>
+
+    <div class="hero-stats">
+      <div class="stat-item">
+        <div class="stat-num">1K<span>+</span></div>
+        <div class="stat-label">Active Jobs</div>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat-item">
+        <div class="stat-num">500<span>+</span></div>
+        <div class="stat-label">Companies</div>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat-item">
+        <div class="stat-num">50K<span>+</span></div>
+        <div class="stat-label">Hired</div>
+      </div>
+    </div>
+
+    <div class="search-wrap">
+      <div class="search-inner">
+        <input type="text" id="searchInput" placeholder="Job title, company, or location…" />
+        <button onclick="searchJobs()">
+          <i class="bi bi-search"></i> Search
+        </button>
+      </div>
+      <div class="search-hint">
+        <span>Try:</span>
+        <span class="hint-tag" onclick="quickSearch('Software Engineer')">Software Engineer</span>
+        <span class="hint-tag" onclick="quickSearch('Data Analyst')">Data Analyst</span>
+        <span class="hint-tag" onclick="quickSearch('Chennai')">Chennai</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ SEARCH MODAL ═══ -->
+<div class="modal fade" id="searchModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="bi bi-search me-2"></i>Search Results</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body p-4">
+        <div id="searchResults"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ MARQUEE ═══ -->
+<div class="marquee-section">
+  <div class="marquee-track" id="marqueeTrack"></div>
+</div>
+
+<!-- ═══ FEATURES ═══ -->
+<div class="section-divider"></div>
+<section id="features">
+  <div class="container">
+    <div class="text-center mb-5">
+      <div class="section-label">Why Us</div>
+      <h2 class="section-title">Built for <em>Ambitious</em> Careers</h2>
+      <p class="section-sub">Everything you need to land your ideal role — in one place.</p>
+    </div>
+
+    <div class="row g-4">
+      <div class="col-md-6 col-lg-3">
+        <div class="feature-card">
+          <div class="feature-icon icon-gold"><i class="bi bi-briefcase-fill"></i></div>
+          <h5>1000+ Jobs</h5>
+          <p>Access thousands of listings updated daily across all industries and experience levels.</p>
+          <div class="feature-arrow">Explore <i class="bi bi-arrow-right"></i></div>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-3">
+        <div class="feature-card">
+          <div class="feature-icon icon-teal"><i class="bi bi-building"></i></div>
+          <h5>Top Companies</h5>
+          <p>Connect directly with leading employers across IT, finance, healthcare, and more.</p>
+          <div class="feature-arrow">Browse <i class="bi bi-arrow-right"></i></div>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-3">
+        <div class="feature-card">
+          <div class="feature-icon icon-purple"><i class="bi bi-shield-check"></i></div>
+          <h5>Secure Platform</h5>
+          <p>Safe, verified, and encrypted. Your data stays private throughout your job search.</p>
+          <div class="feature-arrow">Learn More <i class="bi bi-arrow-right"></i></div>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-3">
+        <div class="feature-card">
+          <div class="feature-icon icon-red"><i class="bi bi-lightning-charge-fill"></i></div>
+          <h5>Fast Apply</h5>
+          <p>Apply to multiple jobs in minutes. One profile, one click, unlimited opportunities.</p>
+          <div class="feature-arrow">Get Started <i class="bi bi-arrow-right"></i></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ CONTACT ═══ -->
+<div class="section-divider"></div>
+<section id="contact-section">
+  <div class="container">
+    <div class="text-center mb-5">
+      <div class="section-label">Contact</div>
+      <h2 class="section-title">We'd Love to <em>Hear</em> From You</h2>
+      <p class="section-sub">Have a question or want to partner with us? Drop us a message.</p>
+    </div>
+
+    <div class="row g-4">
+      <!-- Form -->
+      <div class="col-lg-6">
+        <div class="contact-form-card">
+          <h4 style="font-family:'Clash Display',sans-serif;font-size:1.3rem;margin-bottom:28px;">Send a Message</h4>
+		  <form action="/contactSave" method="post">
+            <div class="mb-4">
+              <div class="form-label-custom">Full Name</div>
+              <input type="text" class="form-control-custom" placeholder="Your name">
+            </div>
+            <div class="mb-4">
+              <div class="form-label-custom">Email Address</div>
+              <input type="email" class="form-control-custom" placeholder="you@example.com">
+            </div>
+            <div class="mb-4">
+              <div class="form-label-custom">Message</div>
+              <textarea class="form-control-custom" rows="5" placeholder="How can we help you?"></textarea>
+            </div>
+            <button type="submit" class="btn-send">
+              <i class="bi bi-send"></i> Send Message
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <!-- Info -->
+      <div class="col-lg-6">
+        <div class="contact-info-card">
+          <h4>Get in Touch</h4>
+          <div class="info-row">
+            <div class="info-icon"><i class="bi bi-geo-alt-fill"></i></div>
+            <div class="info-text"><strong>Address</strong>Chennai, Tamil Nadu, India</div>
+          </div>
+          <div class="info-row">
+            <div class="info-icon"><i class="bi bi-envelope-fill"></i></div>
+            <div class="info-text"><strong>Email</strong>support@jobportal.com</div>
+          </div>
+          <div class="info-row">
+            <div class="info-icon"><i class="bi bi-telephone-fill"></i></div>
+            <div class="info-text"><strong>Phone</strong>+91 98765 43210</div>
+          </div>
+
+          <div class="divider-line"></div>
+
+          <div style="font-size:0.8rem;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);margin-bottom:12px;">Office Hours</div>
+          <div class="hours-grid">
+            <div class="hour-item">
+              <div class="hour-day">Mon – Fri</div>
+              <div class="hour-time">9:00 AM – 6:00 PM</div>
+            </div>
+            <div class="hour-item">
+              <div class="hour-day">Saturday</div>
+              <div class="hour-time">10:00 AM – 2:00 PM</div>
+            </div>
+          </div>
+
+          <div class="divider-line"></div>
+
+          <div style="font-size:0.8rem;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);margin-bottom:14px;">Follow Us</div>
+          <a href="#" class="social-btn"><i class="bi bi-facebook"></i></a>
+          <a href="#" class="social-btn"><i class="bi bi-twitter-x"></i></a>
+          <a href="#" class="social-btn"><i class="bi bi-linkedin"></i></a>
+          <a href="#" class="social-btn"><i class="bi bi-instagram"></i></a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ CHATBOT ═══ -->
+<div class="section-divider"></div>
+<section id="chatbot-section">
+  <div class="container">
+    <div class="text-center mb-5">
+      <div class="section-label">AI Assistant</div>
+      <h2 class="section-title">Chat With Our <em>Bot</em></h2>
+      <p class="section-sub">Have questions about jobs or the platform? Ask our assistant instantly.</p>
+    </div>
+
+    <div class="row justify-content-center">
+      <div class="col-lg-8">
+        <div class="chatbot-card">
+
+          <!-- Header -->
+          <div class="chatbot-header">
+            <div class="chatbot-avatar">
+              <i class="bi bi-robot"></i>
+            </div>
+            <div class="chatbot-header-info">
+              <div class="chatbot-header-name">JobPortal Assistant</div>
+              <div class="chatbot-header-status">
+                <span class="status-dot"></span>
+                <span>Online · Ready to help</span>
+              </div>
+            </div>
+            <i class="bi bi-three-dots" style="color:var(--muted);font-size:1.1rem;cursor:pointer;"></i>
+          </div>
+
+          <!-- Messages -->
+          <div id="chat-box">
+            <!-- Welcome message -->
+            <div class="chat-msg bot">
+              <div class="msg-icon bot-icon"><i class="bi bi-robot"></i></div>
+              <div class="msg-bubble">
+                👋 Hi there! I'm the JobPortal assistant. Ask me anything about jobs, companies, or how to apply!
+              </div>
+            </div>
+            <!-- Typing indicator (hidden by default) -->
+            <div class="typing-indicator" id="typingIndicator">
+              <span></span><span></span><span></span>
+            </div>
+          </div>
+
+          <!-- Input -->
+          <div class="chatbot-input-area">
+            <input type="text" id="userInput" placeholder="Type your message…" />
+            <button class="chatbot-send-btn" onclick="sendMessage()">
+              <i class="bi bi-send-fill"></i>
+            </button>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ FOOTER ═══ -->
+<footer>
+  <div class="container footer-inner">
+    <div class="footer-brand">
+      <span class="brand-dot"></span> JobPortal
+    </div>
+    <div class="footer-copy">© 2026 Job Portal System · All Rights Reserved</div>
+    <div class="footer-links">
+      <a href="#">Privacy</a>
+      <a href="#">Terms</a>
+      <a href="#contact-section">Contact</a>
+    </div>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  /* ── Navbar scroll ── */
+  const nav = document.getElementById('mainNav');
+  window.addEventListener('scroll', () => {
+    nav.classList.toggle('scrolled', window.scrollY > 40);
+  });
+
+  /* ── Marquee ── */
+  const items = ['Software Engineer','Data Analyst','Product Manager','UI/UX Designer','DevOps Engineer','Java Developer','React Developer','Cybersecurity','Chennai','Bengaluru','Mumbai','Remote'];
+  const track = document.getElementById('marqueeTrack');
+  let html = '';
+  for (let i = 0; i < 2; i++) {
+    items.forEach(item => {
+      html += `<span class="marquee-item"><span class="marquee-sep">✦</span>${item}</span>`;
+    });
+  }
+  track.innerHTML = html;
+
+  /* ── Quick search ── */
+  function quickSearch(val) {
+    document.getElementById('searchInput').value = val;
+    searchJobs();
+  }
+
+  /* ── Search ── */
+  function searchJobs() {
+    const keyword = document.getElementById("searchInput").value.trim();
+    if (!keyword) { alert("Please enter a search term"); return; }
+
+    const resultDiv = document.getElementById("searchResults");
+    resultDiv.innerHTML = `
+      <div class='text-center py-4'>
+        <div class='spinner-border' style='color:var(--gold)'></div>
+        <p class='mt-3' style='color:var(--muted);font-size:0.85rem;'>Searching for "${keyword}"…</p>
+      </div>`;
+
+    const modal = new bootstrap.Modal(document.getElementById('searchModal'));
+    modal.show();
+
+    fetch(`/jobs/search?keyword=${encodeURIComponent(keyword)}`)
+      .then(r => r.json())
+      .then(data => {
+        if (!data.length) {
+          resultDiv.innerHTML = `<div class='text-center py-4'><i class='bi bi-search fs-2' style='color:var(--muted)'></i><p class='mt-2' style='color:var(--muted)'>No jobs found for "<strong style='color:#fff'>${keyword}</strong>"</p></div>`;
+          return;
+        }
+        resultDiv.innerHTML = `<p style='color:var(--muted);font-size:0.82rem;margin-bottom:16px;'>${data.length} result${data.length > 1 ? 's' : ''} found</p>`;
+        data.forEach(job => {
+          resultDiv.innerHTML += `
+            <div class="job-result-card">
+              <h5>${job.jobTitle}</h5>
+              <div class="meta">
+                <span><i class="bi bi-building me-1"></i>${job.companyName}</span>
+                <span><i class="bi bi-geo-alt me-1"></i>${job.location}</span>
+                <span class="job-salary"><i class="bi bi-currency-rupee"></i>${job.salary}</span>
+              </div>
+            </div>`;
+        });
+      })
+      .catch(() => {
+        resultDiv.innerHTML = `<div class='text-center py-4'><i class='bi bi-wifi-off fs-2' style='color:#f87171'></i><p class='mt-2' style='color:var(--muted)'>Couldn't fetch results. Please try again.</p></div>`;
+      });
+  }
+
+  document.getElementById('searchInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter') searchJobs();
+  });
+
+  /* ── Chatbot ── */
+  function sendMessage() {
+    const inputEl = document.getElementById("userInput");
+    const input = inputEl.value.trim();
+    if (!input) return;
+
+    const chatBox = document.getElementById("chat-box");
+    const typingEl = document.getElementById("typingIndicator");
+
+    // Append user message
+    chatBox.insertBefore(createMsg('user', input), typingEl);
+    inputEl.value = "";
+    scrollChat();
+
+    // Show typing indicator
+    typingEl.classList.add("visible");
+    scrollChat();
+
+    fetch("/api/chat", {
+      method: "POST",
+      headers: { "Content-Type": "text/plain" },
+      body: input
+    })
+    .then(r => r.text())
+    .then(data => {
+      typingEl.classList.remove("visible");
+      chatBox.insertBefore(createMsg('bot', data), typingEl);
+      scrollChat();
+    })
+    .catch(() => {
+      typingEl.classList.remove("visible");
+      chatBox.insertBefore(createMsg('bot', "Sorry, I couldn't connect. Please try again."), typingEl);
+      scrollChat();
+    });
+  }
+
+  function createMsg(type, text) {
+    const wrapper = document.createElement('div');
+    wrapper.className = `chat-msg ${type}`;
+    const icon = type === 'bot'
+      ? `<div class="msg-icon bot-icon"><i class="bi bi-robot"></i></div>`
+      : `<div class="msg-icon user-icon"><i class="bi bi-person-fill"></i></div>`;
+    wrapper.innerHTML = `${icon}<div class="msg-bubble">${text}</div>`;
+    return wrapper;
+  }
+
+  function scrollChat() {
+    const cb = document.getElementById("chat-box");
+    cb.scrollTop = cb.scrollHeight;
+  }
+
+  document.getElementById('userInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter') sendMessage();
+  });
+
+  /* ── Scroll reveal ── */
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.style.opacity = '1';
+        e.target.style.transform = 'translateY(0)';
+      }
+    });
+  }, { threshold: 0.1 });
+
+  document.querySelectorAll('.feature-card, .contact-form-card, .contact-info-card, .chatbot-card').forEach(el => {
+    el.style.opacity = '0';
+    el.style.transform = 'translateY(30px)';
+    el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+    observer.observe(el);
+  });
+</script>
+</body>
+</html>

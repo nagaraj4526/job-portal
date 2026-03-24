@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+  <title>Create Account · Job Portal</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Clash+Display:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&family=Manrope:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --ink:    #0a0a0f;
+      --ink2:   #13131c;
+      --gold:   #f5c842;
+      --gold2:  #e8a800;
+      --teal:   #00d4aa;
+      --muted:  rgba(255,255,255,0.45);
+      --border: rgba(255,255,255,0.08);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin:0; padding:0; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--ink);
+      font-family: 'Manrope', sans-serif;
+      color: #fff;
+      min-height: 100vh;
+      overflow-x: hidden;
+      overflow-y: auto;
+    }
+
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-track { background: var(--ink2); }
+    ::-webkit-scrollbar-thumb { background: rgba(0,212,170,0.35); border-radius: 10px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--teal); }
+
+    body::before {
+      content: '';
+      position: fixed; inset: 0; z-index: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+      opacity: 0.025; pointer-events: none;
+    }
+
+    .bg-grid {
+      position: fixed; inset: 0; z-index: 0; pointer-events: none;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+      background-size: 60px 60px;
+    }
+
+    .blob { position: fixed; border-radius: 50%; filter: blur(90px); pointer-events: none; z-index: 0; }
+    .blob-1 { width:480px; height:480px; background:radial-gradient(circle,rgba(0,212,170,0.14) 0%,transparent 70%); top:-100px; right:-80px; animation:blob-float 13s ease-in-out infinite alternate; }
+    .blob-2 { width:440px; height:440px; background:radial-gradient(circle,rgba(245,200,66,0.11) 0%,transparent 70%); bottom:-100px; left:-80px; animation:blob-float 16s ease-in-out infinite alternate-reverse; }
+    .blob-3 { width:260px; height:260px; background:radial-gradient(circle,rgba(124,106,245,0.1) 0%,transparent 70%); top:50%; left:50%; animation:blob-float 10s ease-in-out infinite alternate; }
+    @keyframes blob-float { from{transform:translate(0,0) scale(1)} to{transform:translate(28px,22px) scale(1.07)} }
+
+    /* Nav */
+    .top-nav {
+      position: fixed; top:0; left:0; right:0; z-index:100;
+      display:flex; align-items:center; justify-content:space-between;
+      padding:18px 32px;
+      background:rgba(10,10,15,0.75); backdrop-filter:blur(16px);
+      border-bottom:1px solid var(--border);
+    }
+    .back-link {
+      display:inline-flex; align-items:center; gap:7px;
+      color:var(--muted); text-decoration:none;
+      font-size:0.8rem; font-weight:600; letter-spacing:0.05em;
+      transition:color 0.2s,gap 0.25s;
+    }
+    .back-link:hover { color:#fff; gap:10px; }
+    .back-link i { transition:transform 0.25s; }
+    .back-link:hover i { transform:translateX(-3px); }
+    .brand-mark {
+      font-family:'Clash Display',sans-serif; font-size:1rem; font-weight:700;
+      color:rgba(255,255,255,0.5); display:flex; align-items:center; gap:7px;
+      text-decoration:none; transition:color 0.2s;
+    }
+    .brand-mark:hover { color:#fff; }
+    .brand-dot { width:7px; height:7px; border-radius:50%; background:var(--teal); animation:pulse-dot 2s ease-in-out infinite; }
+    @keyframes pulse-dot { 0%,100%{transform:scale(1);opacity:1} 50%{transform:scale(1.5);opacity:0.6} }
+
+    /* Section */
+    #section-register {
+      min-height:100vh;
+      display:flex; align-items:flex-start; justify-content:center;
+      padding:100px 24px 60px;
+      position:relative; z-index:2;
+    }
+
+    .register-wrap {
+      width:100%; max-width:500px;
+      animation:card-in 0.6s cubic-bezier(0.22,1,0.36,1) both;
+    }
+    @keyframes card-in { from{opacity:0;transform:translateY(32px) scale(0.97)} to{opacity:1;transform:translateY(0) scale(1)} }
+
+    .register-card {
+      background:rgba(255,255,255,0.04);
+      border:1px solid var(--border);
+      border-radius:28px; padding:44px 40px 40px;
+      backdrop-filter:blur(20px);
+      box-shadow:0 30px 80px rgba(0,0,0,0.45),0 0 0 1px rgba(255,255,255,0.05) inset;
+    }
+
+    /* Avatar */
+    .avatar-ring {
+      width:72px; height:72px; border-radius:50%;
+      background:linear-gradient(135deg,rgba(0,212,170,0.15),rgba(245,200,66,0.1));
+      border:1.5px solid rgba(0,212,170,0.3);
+      display:flex; align-items:center; justify-content:center;
+      margin:0 auto 24px; font-size:1.8rem; color:var(--teal); position:relative;
+    }
+    .avatar-ring::after {
+      content:''; position:absolute; inset:-6px; border-radius:50%;
+      border:1px dashed rgba(0,212,170,0.22);
+      animation:spin-ring 18s linear infinite;
+    }
+    @keyframes spin-ring { to{transform:rotate(360deg)} }
+
+    /* Steps */
+    .steps-row { display:flex; align-items:center; justify-content:center; gap:0; margin-bottom:28px; }
+    .step-dot {
+      width:28px; height:28px; border-radius:50%;
+      display:flex; align-items:center; justify-content:center;
+      font-size:0.7rem; font-weight:700;
+      border:1.5px solid var(--border); color:var(--muted); transition:all 0.3s;
+    }
+    .step-dot.active { background:var(--teal); border-color:var(--teal); color:var(--ink); box-shadow:0 0 12px rgba(0,212,170,0.4); }
+    .step-dot.done   { background:rgba(0,212,170,0.15); border-color:rgba(0,212,170,0.4); color:var(--teal); }
+    .step-line { flex:1; height:1.5px; background:var(--border); max-width:40px; }
+    .step-line.done { background:rgba(0,212,170,0.35); }
+
+    .login-eyebrow {
+      display:inline-flex; align-items:center; gap:7px;
+      background:rgba(255,255,255,0.05); border:1px solid var(--border);
+      border-radius:30px; padding:4px 14px;
+      font-size:0.7rem; font-weight:700; letter-spacing:0.14em; text-transform:uppercase;
+      color:var(--teal); margin-bottom:10px;
+    }
+    .eyebrow-dot { width:5px; height:5px; border-radius:50%; background:var(--teal); }
+
+    .register-title {
+      font-family:'Clash Display',sans-serif; font-size:2rem; font-weight:700;
+      letter-spacing:-0.02em; line-height:1.1;
+    }
+    .register-title em { font-family:'Instrument Serif',serif; font-style:italic; color:var(--gold); }
+    .register-sub { color:var(--muted); font-size:0.85rem; margin-top:8px; line-height:1.6; }
+
+    .form-divider {
+      height:1px;
+      background:linear-gradient(90deg,transparent,var(--border) 40%,var(--border) 60%,transparent);
+      margin:26px 0;
+    }
+
+    /* Section label */
+    .form-section-label {
+      font-size:0.68rem; font-weight:700; letter-spacing:0.14em; text-transform:uppercase;
+      color:rgba(255,255,255,0.2); margin-bottom:14px; margin-top:4px;
+      display:flex; align-items:center; gap:8px;
+    }
+    .form-section-label::after { content:''; flex:1; height:1px; background:var(--border); }
+
+    /* Alerts */
+    .alert-custom {
+      background:rgba(248,113,113,0.1); border:1px solid rgba(248,113,113,0.25);
+      border-radius:12px; color:#fca5a5; padding:12px 16px; font-size:0.83rem;
+      margin-bottom:20px; display:flex; align-items:center; gap:10px;
+    }
+    .alert-success {
+      background:rgba(0,212,170,0.1); border:1px solid rgba(0,212,170,0.25);
+      border-radius:12px; color:#6ee7d4; padding:12px 16px; font-size:0.83rem;
+      margin-bottom:20px; display:flex; align-items:center; gap:10px;
+    }
+
+    /* Labels */
+    .field-label {
+      font-size:0.75rem; font-weight:700; letter-spacing:0.1em; text-transform:uppercase;
+      color:rgba(255,255,255,0.5); margin-bottom:8px; display:block;
+    }
+
+    /* Inputs */
+    .input-wrap { position:relative; }
+    .input-wrap .input-icon {
+      position:absolute; left:14px; top:50%; transform:translateY(-50%);
+      color:rgba(255,255,255,0.3); font-size:0.9rem; pointer-events:none; transition:color 0.2s;
+    }
+    .input-wrap:focus-within .input-icon { color:var(--teal); }
+    .input-wrap input {
+      width:100%; background:rgba(255,255,255,0.05);
+      border:1.5px solid var(--border); border-radius:12px; color:#fff;
+      padding:12px 14px 12px 40px;
+      font-family:'Manrope',sans-serif; font-size:0.9rem;
+      transition:border-color 0.2s,box-shadow 0.2s,background 0.2s;
+    }
+    .input-wrap input::placeholder { color:rgba(255,255,255,0.22); }
+    .input-wrap input:focus {
+      outline:none; border-color:rgba(0,212,170,0.45);
+      box-shadow:0 0 0 4px rgba(0,212,170,0.09); background:rgba(255,255,255,0.07);
+    }
+    .pw-input { padding-right:42px !important; }
+
+    .toggle-pw {
+      position:absolute; right:13px; top:50%; transform:translateY(-50%);
+      background:none; border:none; color:rgba(255,255,255,0.3);
+      cursor:pointer; font-size:0.9rem; padding:4px; transition:color 0.2s;
+    }
+    .toggle-pw:hover { color:rgba(255,255,255,0.7); }
+
+    /* 2-col row */
+    .field-row { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+    @media(max-width:500px){ .field-row{grid-template-columns:1fr} }
+
+    /* Phone prefix */
+    .phone-wrap { display:flex; gap:8px; }
+    .phone-prefix {
+      background:rgba(255,255,255,0.05); border:1.5px solid var(--border);
+      border-radius:12px; color:rgba(255,255,255,0.6);
+      padding:12px 10px; font-family:'Manrope',sans-serif; font-size:0.85rem;
+      min-width:80px; cursor:pointer; appearance:none; text-align:center;
+      transition:border-color 0.2s,background 0.2s;
+    }
+    .phone-prefix:focus { outline:none; border-color:rgba(0,212,170,0.45); background:rgba(255,255,255,0.07); }
+    .phone-prefix option { background:var(--ink2); }
+    .phone-wrap .input-wrap { flex:1; }
+
+    /* Role toggle */
+    .role-toggle { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+    .role-option input[type="radio"] { display:none; }
+    .role-option label {
+      display:flex; align-items:center; justify-content:center; gap:8px;
+      padding:12px 14px; background:rgba(255,255,255,0.04);
+      border:1.5px solid var(--border); border-radius:12px; cursor:pointer;
+      font-size:0.83rem; font-weight:600; color:rgba(255,255,255,0.45);
+      transition:all 0.2s;
+    }
+    .role-option input:checked + label {
+      background:rgba(0,212,170,0.1); border-color:rgba(0,212,170,0.4);
+      color:var(--teal); box-shadow:0 0 0 3px rgba(0,212,170,0.08);
+    }
+    .role-option label:hover { border-color:rgba(0,212,170,0.25); color:#fff; }
+
+    /* Strength */
+    .strength-wrap { margin-top:10px; }
+    .strength-bar { height:3px; border-radius:4px; background:var(--border); overflow:hidden; }
+    .strength-fill { height:100%; width:0; border-radius:4px; transition:width 0.4s,background 0.4s; }
+    .strength-label { font-size:0.7rem; color:var(--muted); margin-top:5px; }
+
+    /* Match */
+    .match-msg { font-size:0.7rem; margin-top:5px; min-height:16px; }
+
+    /* Terms */
+    .terms-row { display:flex; align-items:flex-start; gap:10px; margin-top:18px; }
+    .terms-check {
+      width:18px; height:18px; border-radius:5px; flex-shrink:0; margin-top:1px;
+      background:rgba(255,255,255,0.06); border:1.5px solid var(--border);
+      accent-color:var(--teal); cursor:pointer;
+    }
+    .terms-text { font-size:0.78rem; color:var(--muted); line-height:1.55; }
+    .terms-text a { color:var(--teal); text-decoration:none; font-weight:600; }
+    .terms-text a:hover { text-decoration:underline; }
+
+    /* Submit */
+    .btn-register {
+      width:100%; background:linear-gradient(135deg,var(--teal),#00b894); color:var(--ink);
+      border:none; border-radius:12px; padding:14px;
+      font-family:'Manrope',sans-serif; font-weight:700; font-size:0.95rem; cursor:pointer;
+      transition:opacity 0.2s,transform 0.15s,box-shadow 0.2s;
+      display:flex; align-items:center; justify-content:center; gap:8px; margin-top:22px;
+    }
+    .btn-register:hover { opacity:0.92; transform:translateY(-2px); box-shadow:0 8px 28px rgba(0,212,170,0.3); }
+    .btn-register:active { transform:translateY(0); }
+
+    .login-footer {
+      margin-top:22px; text-align:center; font-size:0.82rem; color:var(--muted);
+    }
+    .login-footer a { color:var(--gold); text-decoration:none; font-weight:600; transition:color 0.2s; }
+    .login-footer a:hover { color:var(--gold2); text-decoration:underline; }
+
+    /* Perks */
+    .perks-row { display:flex; justify-content:center; gap:16px; margin-top:24px; flex-wrap:wrap; }
+    .perk-item { display:flex; align-items:center; gap:5px; font-size:0.7rem; color:rgba(255,255,255,0.25); letter-spacing:0.04em; }
+    .perk-item i { color:rgba(0,212,170,0.5); }
+
+    /* Scroll hint */
+    .scroll-hint {
+      display:flex; flex-direction:column; align-items:center; gap:6px;
+      margin-top:32px; cursor:pointer; text-decoration:none;
+      animation:bounce 2s ease-in-out infinite;
+    }
+    .scroll-hint span { font-size:0.7rem; font-weight:600; letter-spacing:0.12em; text-transform:uppercase; color:rgba(255,255,255,0.2); }
+    .scroll-hint i { font-size:1rem; color:rgba(255,255,255,0.2); }
+    .scroll-hint:hover span, .scroll-hint:hover i { color:var(--teal); }
+    @keyframes bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(6px)} }
+
+    /* ── Section 2 ── */
+    #section-why { position:relative; z-index:2; padding:100px 24px; }
+    .section-inner { max-width:900px; margin:0 auto; }
+    .section-eyebrow {
+      display:inline-flex; align-items:center; gap:7px;
+      background:rgba(255,255,255,0.05); border:1px solid var(--border);
+      border-radius:30px; padding:4px 14px;
+      font-size:0.7rem; font-weight:700; letter-spacing:0.14em; text-transform:uppercase;
+      color:var(--gold); margin-bottom:16px;
+    }
+    .section-title {
+      font-family:'Clash Display',sans-serif;
+      font-size:clamp(1.8rem,4vw,2.6rem); font-weight:700;
+      letter-spacing:-0.02em; line-height:1.15; margin-bottom:14px;
+    }
+    .section-title em { font-family:'Instrument Serif',serif; font-style:italic; color:var(--teal); }
+    .section-sub { color:var(--muted); font-size:0.9rem; max-width:500px; line-height:1.7; margin-bottom:52px; }
+
+    .why-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:18px; }
+    .why-card {
+      background:rgba(255,255,255,0.03); border:1px solid var(--border);
+      border-radius:20px; padding:26px 24px;
+      opacity:0; transform:translateY(22px);
+      transition:opacity 0.5s ease,transform 0.5s ease,border-color 0.25s,background 0.25s;
+    }
+    .why-card.visible { opacity:1; transform:translateY(0); }
+    .why-card:hover { border-color:rgba(0,212,170,0.2); background:rgba(255,255,255,0.05); transform:translateY(-4px); }
+    .why-icon { width:44px; height:44px; border-radius:11px; display:flex; align-items:center; justify-content:center; font-size:1.15rem; margin-bottom:14px; }
+    .why-title { font-family:'Clash Display',sans-serif; font-size:0.97rem; font-weight:600; margin-bottom:7px; }
+    .why-desc { font-size:0.81rem; color:var(--muted); line-height:1.6; }
+
+    /* ── Section 3: How it works ── */
+    #section-how {
+      position:relative; z-index:2; padding:80px 24px;
+      border-top:1px solid var(--border); border-bottom:1px solid var(--border);
+    }
+    .how-steps {
+      display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+      gap:0; max-width:800px; margin:0 auto; position:relative;
+    }
+    .how-steps::before {
+      content:''; position:absolute; top:22px; left:10%; right:10%; height:1px;
+      background:linear-gradient(90deg,transparent,var(--border) 20%,var(--border) 80%,transparent);
+    }
+    .how-step { text-align:center; padding:0 20px; }
+    .how-number {
+      width:44px; height:44px; border-radius:50%;
+      background:rgba(0,212,170,0.1); border:1.5px solid rgba(0,212,170,0.3);
+      display:flex; align-items:center; justify-content:center;
+      font-family:'Clash Display',sans-serif; font-weight:700; font-size:1rem;
+      color:var(--teal); margin:0 auto 18px; position:relative; z-index:1;
+    }
+    .how-title { font-weight:700; font-size:0.9rem; margin-bottom:7px; }
+    .how-desc { font-size:0.78rem; color:var(--muted); line-height:1.6; }
+
+    /* ── CTA ── */
+    #section-cta { position:relative; z-index:2; padding:100px 24px; text-align:center; }
+    .cta-card {
+      max-width:580px; margin:0 auto;
+      background:rgba(255,255,255,0.03); border:1px solid var(--border);
+      border-radius:28px; padding:52px 44px; backdrop-filter:blur(20px);
+      position:relative; overflow:hidden;
+    }
+    .cta-card::before {
+      content:''; position:absolute; top:-60px; left:50%; transform:translateX(-50%);
+      width:300px; height:300px;
+      background:radial-gradient(circle,rgba(0,212,170,0.07) 0%,transparent 70%);
+      pointer-events:none;
+    }
+    .cta-title { font-family:'Clash Display',sans-serif; font-size:clamp(1.5rem,3.5vw,2rem); font-weight:700; letter-spacing:-0.02em; margin-bottom:12px; }
+    .cta-title em { font-family:'Instrument Serif',serif; font-style:italic; color:var(--gold); }
+    .cta-sub { color:var(--muted); font-size:0.87rem; line-height:1.7; margin-bottom:30px; }
+    .cta-btns { display:flex; gap:12px; justify-content:center; flex-wrap:wrap; }
+    .btn-gold-cta {
+      background:var(--gold); color:var(--ink); border:none; border-radius:12px; padding:13px 26px;
+      font-family:'Manrope',sans-serif; font-weight:700; font-size:0.9rem; cursor:pointer; text-decoration:none;
+      display:inline-flex; align-items:center; gap:7px;
+      transition:background 0.2s,transform 0.15s,box-shadow 0.2s;
+    }
+    .btn-gold-cta:hover { background:var(--gold2); transform:translateY(-2px); box-shadow:0 8px 26px rgba(245,200,66,0.28); color:var(--ink); }
+    .btn-outline-cta {
+      background:transparent; color:rgba(255,255,255,0.6); border:1.5px solid var(--border);
+      border-radius:12px; padding:12px 26px;
+      font-family:'Manrope',sans-serif; font-weight:600; font-size:0.9rem; cursor:pointer; text-decoration:none;
+      display:inline-flex; align-items:center; gap:7px;
+      transition:border-color 0.2s,color 0.2s,transform 0.15s;
+    }
+    .btn-outline-cta:hover { border-color:rgba(255,255,255,0.25); color:#fff; transform:translateY(-2px); }
+
+    /* Footer */
+    .site-footer {
+      position:relative; z-index:2; border-top:1px solid var(--border);
+      padding:26px 32px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px;
+    }
+    .footer-brand { font-family:'Clash Display',sans-serif; font-size:0.88rem; font-weight:700; color:rgba(255,255,255,0.3); display:flex; align-items:center; gap:7px; }
+    .footer-copy { font-size:0.7rem; color:rgba(255,255,255,0.18); }
+    .footer-links { display:flex; gap:18px; }
+    .footer-links a { font-size:0.7rem; color:rgba(255,255,255,0.22); text-decoration:none; transition:color 0.2s; }
+    .footer-links a:hover { color:var(--teal); }
+
+    /* Scroll top */
+    .scroll-top {
+      position:fixed; bottom:28px; right:28px; z-index:50;
+      width:42px; height:42px; border-radius:50%;
+      background:rgba(0,212,170,0.12); border:1px solid rgba(0,212,170,0.3);
+      color:var(--teal); font-size:1rem;
+      display:flex; align-items:center; justify-content:center;
+      cursor:pointer; text-decoration:none;
+      transition:background 0.2s,transform 0.2s,opacity 0.3s;
+      opacity:0; pointer-events:none;
+    }
+    .scroll-top.visible { opacity:1; pointer-events:auto; }
+    .scroll-top:hover { background:rgba(0,212,170,0.25); transform:translateY(-3px); }
+
+    @media(max-width:480px){ .register-card{padding:32px 20px} .site-footer{flex-direction:column;text-align:center} .how-steps::before{display:none} }
+  </style>
+</head>
+<body>
+
+  <div class="bg-grid"></div>
+  <div class="blob blob-1"></div>
+  <div class="blob blob-2"></div>
+  <div class="blob blob-3"></div>
+
+  <!-- Nav -->
+  <nav class="top-nav">
+    <a href="/" class="back-link"><i class="bi bi-arrow-left"></i> Back to Home</a>
+    <a href="/" class="brand-mark"><span class="brand-dot"></span> JobPortal</a>
+  </nav>
+
+  <!-- ══ SECTION 1 — FORM ══ -->
+  <section id="section-register">
+    <div class="register-wrap">
+      <div class="register-card">
+
+        <div class="text-center">
+          <div class="avatar-ring"><i class="bi bi-person-plus-fill"></i></div>
+
+          <div class="steps-row">
+            <div class="step-dot active">1</div>
+            <div class="step-line"></div>
+            <div class="step-dot">2</div>
+            <div class="step-line"></div>
+            <div class="step-dot">3</div>
+          </div>
+
+          <div class="login-eyebrow"><span class="eyebrow-dot"></span> New Account</div>
+          <h1 class="register-title">Join <em>Today</em></h1>
+          <p class="register-sub">Create your free account and start applying to jobs instantly.</p>
+        </div>
+
+        <div class="form-divider"></div>
+
+        <!-- Alerts -->
+        <div th:if="${error}" class="alert-custom">
+          <i class="bi bi-exclamation-circle-fill"></i>
+          <span th:text="${error}">Error</span>
+        </div>
+        <div th:if="${success}" class="alert-success">
+          <i class="bi bi-check-circle-fill"></i>
+          <span th:text="${success}">Success</span>
+        </div>
+
+        <form th:action="@{/register}" th:object="${user}" method="post">
+
+          <!-- ── Personal Info ── -->
+          <div class="form-section-label">Personal Info</div>
+
+          <!-- Full Name + Username (maps to entity fields) -->
+          <div class="field-row mb-4">
+            <div>
+              <label class="field-label" for="fullName">Full Name</label>
+              <div class="input-wrap">
+                <i class="bi bi-person-badge input-icon"></i>
+                <!-- th:field maps to User.fullName -->
+                <input type="text" id="fullName" th:field="*{fullName}"
+                       placeholder="John Doe" required />
+              </div>
+            </div>
+            <div>
+              <label class="field-label" for="reg-username">Username</label>
+              <div class="input-wrap">
+                <i class="bi bi-at input-icon"></i>
+                <!-- th:field maps to User.name -->
+                <input type="text" id="reg-username" th:field="*{name}"
+                       placeholder="johndoe" required autocomplete="username" />
+              </div>
+            </div>
+          </div>
+
+          <!-- Email — maps to User.email -->
+          <div class="mb-4">
+            <label class="field-label" for="email">Email Address</label>
+            <div class="input-wrap">
+              <i class="bi bi-envelope input-icon"></i>
+              <input type="email" id="email" th:field="*{email}"
+                     placeholder="john@example.com" required autocomplete="email" />
+            </div>
+          </div>
+
+          <!-- Phone — maps to User.phone -->
+          <div class="mb-4">
+            <label class="field-label" for="phone">Phone Number</label>
+            <div class="phone-wrap">
+              <select class="phone-prefix" aria-label="Country code">
+                <option>🇮🇳 +91</option>
+                <option>🇺🇸 +1</option>
+                <option>🇬🇧 +44</option>
+                <option>🇦🇺 +61</option>
+                <option>🇦🇪 +971</option>
+                <option>🇸🇬 +65</option>
+              </select>
+              <div class="input-wrap">
+                <i class="bi bi-telephone input-icon"></i>
+                <!-- th:field maps to User.phone -->
+				<input type="tel" id="phone" th:field="*{phone}"
+				       placeholder="9876543210"
+				       pattern="[0-9]{10}"
+				       required />
+              </div>
+            </div>
+          </div>
+
+          <!-- ── Role — maps to User.role ── -->
+          <div class="form-section-label">I am a</div>
+          <div class="role-toggle mb-4">
+            <div class="role-option">
+              <input type="radio" id="roleCandidate" th:field="*{role}" value="CANDIDATE" checked>
+              <label for="roleCandidate"><i class="bi bi-person-workspace"></i> Job Seeker</label>
+            </div>
+            <div class="role-option">
+              <input type="radio" id="roleEmployer" th:field="*{role}" value="EMPLOYER">
+              <label for="roleEmployer"><i class="bi bi-building"></i> Employer</label>
+            </div>
+          </div>
+
+          <!-- ── Security ── -->
+          <div class="form-section-label">Security</div>
+
+          <!-- Password — maps to User.password -->
+          <div class="mb-4">
+            <label class="field-label" for="reg-password">Password</label>
+            <div class="input-wrap">
+              <i class="bi bi-lock input-icon"></i>
+              <input type="password" id="reg-password" th:field="*{password}"
+                     class="pw-input" placeholder="Create a strong password"
+                     required autocomplete="new-password"
+                     oninput="checkStrength(this.value)" />
+              <button type="button" class="toggle-pw" onclick="togglePw('reg-password','eye1')">
+                <i class="bi bi-eye" id="eye1"></i>
+              </button>
+            </div>
+            <div class="strength-wrap">
+              <div class="strength-bar"><div class="strength-fill" id="strengthFill"></div></div>
+              <div class="strength-label" id="strengthLabel">Enter a password to check strength</div>
+            </div>
+          </div>
+
+          <!-- Confirm Password — handled in controller as @RequestParam -->
+          <div class="mb-1">
+            <label class="field-label" for="confirmPassword">Confirm Password</label>
+            <div class="input-wrap">
+              <i class="bi bi-lock-fill input-icon"></i>
+              <input type="password" id="confirmPassword" name="confirmPassword"
+                     class="pw-input" placeholder="Repeat your password"
+                     required autocomplete="new-password"
+                     oninput="checkMatch()" />
+              <button type="button" class="toggle-pw" onclick="togglePw('confirmPassword','eye2')">
+                <i class="bi bi-eye" id="eye2"></i>
+              </button>
+            </div>
+            <div class="match-msg" id="matchMsg"></div>
+          </div>
+
+          <!-- Terms -->
+          <div class="terms-row">
+            <input type="checkbox" class="terms-check" id="terms" required />
+            <label class="terms-text" for="terms">
+              I agree to the <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>
+            </label>
+          </div>
+
+          <button type="submit" class="btn-register">
+            <i class="bi bi-rocket-takeoff-fill"></i> Create Account
+          </button>
+
+        </form>
+
+        <div class="login-footer">
+          Already have an account?
+          <a th:href="@{/login}" href="/login">Sign in →</a>
+        </div>
+
+      </div><!-- /register-card -->
+
+      <div class="perks-row">
+        <div class="perk-item"><i class="bi bi-check-circle-fill"></i> Free Forever</div>
+        <div class="perk-item"><i class="bi bi-lightning-fill"></i> Instant Access</div>
+        <div class="perk-item"><i class="bi bi-shield-check"></i> No Spam</div>
+        <div class="perk-item"><i class="bi bi-globe"></i> 50K+ Jobs</div>
+      </div>
+
+      <a href="#section-why" class="scroll-hint">
+        <span>Learn more</span>
+        <i class="bi bi-chevron-double-down"></i>
+      </a>
+    </div>
+  </section>
+
+  <!-- ══ SECTION 2 — WHY JOIN ══ -->
+  <section id="section-why">
+    <div class="section-inner">
+      <div class="text-center">
+        <div class="section-eyebrow"><i class="bi bi-stars" style="margin-right:4px"></i> Why JobPortal</div>
+        <h2 class="section-title">Built for job seekers <em>like you</em></h2>
+        <p class="section-sub" style="margin:0 auto 52px;">Everything you need to find, apply, and land your next opportunity — free.</p>
+      </div>
+      <div class="why-grid">
+        <div class="why-card">
+          <div class="why-icon" style="background:rgba(0,212,170,0.1);border:1px solid rgba(0,212,170,0.15);color:var(--teal)"><i class="bi bi-search-heart-fill"></i></div>
+          <div class="why-title">Smart Job Matching</div>
+          <p class="why-desc">Our algorithm matches your profile with the most relevant openings and surfaces them to your dashboard daily.</p>
+        </div>
+        <div class="why-card">
+          <div class="why-icon" style="background:rgba(245,200,66,0.1);border:1px solid rgba(245,200,66,0.15);color:var(--gold)"><i class="bi bi-send-check-fill"></i></div>
+          <div class="why-title">One-Click Apply</div>
+          <p class="why-desc">Upload your resume once. Apply to any job with a single click — no repetitive form filling ever again.</p>
+        </div>
+        <div class="why-card">
+          <div class="why-icon" style="background:rgba(124,106,245,0.1);border:1px solid rgba(124,106,245,0.15);color:#a89ef8"><i class="bi bi-bell-fill"></i></div>
+          <div class="why-title">Instant Alerts</div>
+          <p class="why-desc">Get notified the second a matching job is posted. Be the first to apply and stand out from the crowd.</p>
+        </div>
+        <div class="why-card">
+          <div class="why-icon" style="background:rgba(249,115,22,0.1);border:1px solid rgba(249,115,22,0.15);color:#fb923c"><i class="bi bi-graph-up-arrow"></i></div>
+          <div class="why-title">Application Tracker</div>
+          <p class="why-desc">Track every application in a visual pipeline — Applied → Viewed → Interview → Offer.</p>
+        </div>
+        <div class="why-card">
+          <div class="why-icon" style="background:rgba(52,211,153,0.1);border:1px solid rgba(52,211,153,0.15);color:#34d399"><i class="bi bi-building-check"></i></div>
+          <div class="why-title">Verified Employers</div>
+          <p class="why-desc">Every company is manually verified. No fake listings, no bots — only real teams hiring now.</p>
+        </div>
+        <div class="why-card">
+          <div class="why-icon" style="background:rgba(232,121,249,0.1);border:1px solid rgba(232,121,249,0.15);color:#e879f9"><i class="bi bi-chat-dots-fill"></i></div>
+          <div class="why-title">In-App Messaging</div>
+          <p class="why-desc">Chat directly with recruiters inside JobPortal. No switching apps, no lost emails.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+  <small style="color:rgba(255,255,255,0.3);">
+    You will receive login alerts on this number
+  </small>
+
+  <!-- ══ SECTION 3 — HOW IT WORKS ══ -->
+  <section id="section-how">
+    <div class="section-inner text-center">
+      <div class="section-eyebrow"><i class="bi bi-list-ol" style="margin-right:4px"></i> How it Works</div>
+      <h2 class="section-title" style="margin-bottom:10px">Three steps to your <em>next job</em></h2>
+      <p class="section-sub" style="margin:0 auto 52px">Getting started takes less than 2 minutes.</p>
+      <div class="how-steps">
+        <div class="how-step">
+          <div class="how-number">1</div>
+          <div class="how-title">Create Account</div>
+          <p class="how-desc">Sign up for free. No credit card required.</p>
+        </div>
+        <div class="how-step">
+          <div class="how-number">2</div>
+          <div class="how-title">Build Profile</div>
+          <p class="how-desc">Add your experience, skills, and upload your resume once.</p>
+        </div>
+        <div class="how-step">
+          <div class="how-number">3</div>
+          <div class="how-title">Apply & Get Hired</div>
+          <p class="how-desc">Browse matches, apply with one click, track every response.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ SECTION 4 — CTA ══ -->
+  <section id="section-cta">
+    <div class="cta-card">
+      <div class="section-eyebrow"><i class="bi bi-rocket-takeoff" style="margin-right:4px"></i> Ready?</div>
+      <h2 class="cta-title">Your career starts <em>right now</em></h2>
+      <p class="cta-sub">Join 200,000+ professionals already using JobPortal. Free forever, no credit card needed.</p>
+      <div class="cta-btns">
+        <a href="#section-register" class="btn-gold-cta"><i class="bi bi-person-plus-fill"></i> Get Started Free</a>
+        <a th:href="@{/login}" href="/login" class="btn-outline-cta"><i class="bi bi-box-arrow-in-right"></i> Sign In</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="site-footer">
+    <div class="footer-brand"><span class="brand-dot"></span> JobPortal</div>
+    <div class="footer-copy">© 2025 JobPortal. All rights reserved.</div>
+    <div class="footer-links">
+      <a href="#">Privacy</a><a href="#">Terms</a><a href="#">Contact</a>
+    </div>
+  </footer>
+
+  <!-- Scroll top -->
+  <a href="#section-register" class="scroll-top" id="scrollTopBtn">
+    <i class="bi bi-arrow-up"></i>
+  </a>
+
+  <script>
+    function togglePw(id, iconId) {
+      const pw = document.getElementById(id);
+      const ic = document.getElementById(iconId);
+      pw.type = pw.type === 'password' ? 'text' : 'password';
+      ic.className = pw.type === 'password' ? 'bi bi-eye' : 'bi bi-eye-slash';
+    }
+
+    function checkStrength(val) {
+      const fill  = document.getElementById('strengthFill');
+      const label = document.getElementById('strengthLabel');
+      let score = 0;
+      if (val.length >= 6)           score++;
+      if (val.length >= 10)          score++;
+      if (/[A-Z]/.test(val))         score++;
+      if (/[0-9]/.test(val))         score++;
+      if (/[^A-Za-z0-9]/.test(val))  score++;
+      const levels = [
+        { w:'0%',   bg:'transparent',   t:'Enter a password to check strength' },
+        { w:'20%',  bg:'#f87171',       t:'Weak — too short' },
+        { w:'40%',  bg:'#fb923c',       t:'Fair — add numbers or symbols' },
+        { w:'65%',  bg:'#facc15',       t:'Good — almost there!' },
+        { w:'85%',  bg:'#4ade80',       t:'Strong password ✓' },
+        { w:'100%', bg:'var(--teal)',    t:'Excellent password ✓✓' },
+      ];
+      const l = levels[Math.min(score, 5)];
+      fill.style.width      = val.length === 0 ? '0%' : l.w;
+      fill.style.background = l.bg;
+      label.textContent     = val.length === 0 ? levels[0].t : l.t;
+      label.style.color     = val.length === 0 ? 'var(--muted)' : l.bg;
+      checkMatch();
+    }
+
+    function checkMatch() {
+      const pw   = document.getElementById('reg-password').value;
+      const conf = document.getElementById('confirmPassword').value;
+      const msg  = document.getElementById('matchMsg');
+      if (!conf) { msg.textContent = ''; return; }
+      if (conf === pw) { msg.textContent = '✓ Passwords match';       msg.style.color = '#00d4aa'; }
+      else             { msg.textContent = '✗ Passwords do not match'; msg.style.color = '#f87171'; }
+    }
+
+    // Scroll-to-top button
+    const scrollTopBtn = document.getElementById('scrollTopBtn');
+    window.addEventListener('scroll', () => {
+      scrollTopBtn.classList.toggle('visible', window.scrollY > 500);
+    });
+
+    // Animate why-cards on scroll
+    const whyCards = document.querySelectorAll('.why-card');
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry, i) => {
+        if (entry.isIntersecting) {
+          setTimeout(() => entry.target.classList.add('visible'), i * 80);
+        }
+      });
+    }, { threshold: 0.15 });
+    whyCards.forEach(c => observer.observe(c));
+  </script>
+
+</body>
+</html>

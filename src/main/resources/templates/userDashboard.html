@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard — JobTrack</title>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet" />
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --bg:        #0d0f14;
+            --surface:   #13161e;
+            --border:    #1f2330;
+            --accent:    #c8f04c;
+            --accent2:   #3d7fff;
+            --text:      #e8eaf2;
+            --muted:     #5a5f73;
+            --danger:    #ff5c5c;
+            --warn:      #ffaa3b;
+            --ok:        #4ddb9b;
+            --sidebar-w: 240px;
+            --radius:    12px;
+        }
+
+        html, body {
+            height: 100%;
+            font-family: 'DM Sans', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            font-size: 15px;
+        }
+
+        /* ── LAYOUT ── */
+        .shell { display: flex; min-height: 100vh; }
+
+        /* ── SIDEBAR ── */
+        .sidebar {
+            width: var(--sidebar-w);
+            background: var(--surface);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            padding: 28px 20px;
+            position: fixed;
+            top: 0; left: 0; bottom: 0;
+            z-index: 10;
+        }
+        .logo {
+            font-family: 'Syne', sans-serif;
+            font-weight: 800;
+            font-size: 1.35rem;
+            letter-spacing: -0.03em;
+            color: var(--accent);
+            margin-bottom: 40px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .logo-dot {
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            background: var(--accent);
+            display: inline-block;
+        }
+
+        .nav { display: flex; flex-direction: column; gap: 4px; flex: 1; }
+        .nav-label {
+            font-size: 0.68rem;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: var(--muted);
+            margin: 16px 0 6px 10px;
+        }
+        .nav a {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 9px 14px;
+            border-radius: 8px;
+            color: var(--muted);
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: background 0.15s, color 0.15s;
+        }
+        .nav a:hover { background: var(--border); color: var(--text); }
+        .nav a.active { background: rgba(200,240,76,0.10); color: var(--accent); }
+        .nav a svg { flex-shrink: 0; opacity: 0.7; }
+        .nav a.active svg { opacity: 1; }
+
+        .sidebar-footer {
+            border-top: 1px solid var(--border);
+            padding-top: 20px;
+            margin-top: auto;
+        }
+        .user-chip {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .avatar {
+            width: 34px; height: 34px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent2), var(--accent));
+            display: flex; align-items: center; justify-content: center;
+            font-family: 'Syne', sans-serif;
+            font-weight: 700;
+            font-size: 0.8rem;
+            color: #0d0f14;
+            flex-shrink: 0;
+        }
+        .user-info { overflow: hidden; }
+        .user-name {
+            font-weight: 600;
+            font-size: 0.85rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .user-role {
+            font-size: 0.72rem;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+        }
+
+        /* ── MAIN ── */
+        .main {
+            margin-left: var(--sidebar-w);
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ── TOPBAR ── */
+        .topbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 22px 36px;
+            border-bottom: 1px solid var(--border);
+            background: var(--surface);
+            position: sticky; top: 0; z-index: 5;
+        }
+        .page-title {
+            font-family: 'Syne', sans-serif;
+            font-weight: 700;
+            font-size: 1.15rem;
+            letter-spacing: -0.02em;
+        }
+        .topbar-actions { display: flex; gap: 10px; }
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 18px;
+            border-radius: 8px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            transition: opacity 0.15s, transform 0.1s;
+            text-decoration: none;
+        }
+        .btn:hover { opacity: 0.85; transform: translateY(-1px); }
+        .btn-primary { background: var(--accent); color: #0d0f14; }
+        .btn-ghost { background: var(--border); color: var(--text); }
+        .btn-danger { background: rgba(255,92,92,0.15); color: var(--danger); }
+
+        /* ── CONTENT ── */
+        .content { padding: 36px; display: flex; flex-direction: column; gap: 32px; }
+
+        /* ── FLASH ── */
+        .flash {
+            background: rgba(77, 219, 155, 0.1);
+            border: 1px solid rgba(77, 219, 155, 0.3);
+            color: var(--ok);
+            padding: 14px 20px;
+            border-radius: var(--radius);
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            animation: slideIn 0.35s ease;
+        }
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(-8px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ── STATS ROW ── */
+        .stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; }
+        .stat-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 22px 24px;
+            position: relative;
+            overflow: hidden;
+            transition: border-color 0.2s;
+        }
+        .stat-card:hover { border-color: var(--accent); }
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 3px;
+            background: var(--card-accent, var(--accent));
+        }
+        .stat-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--muted);
+            margin-bottom: 10px;
+        }
+        .stat-value {
+            font-family: 'Syne', sans-serif;
+            font-weight: 800;
+            font-size: 2rem;
+            letter-spacing: -0.03em;
+            line-height: 1;
+            color: var(--text);
+        }
+        .stat-sub { font-size: 0.78rem; color: var(--muted); margin-top: 6px; }
+
+        /* ── SECTION HEADER ── */
+        .section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+        .section-title {
+            font-family: 'Syne', sans-serif;
+            font-weight: 700;
+            font-size: 1rem;
+            letter-spacing: -0.01em;
+        }
+
+        /* ── TABLE ── */
+        .table-wrap {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            overflow: hidden;
+        }
+        table { width: 100%; border-collapse: collapse; }
+        thead tr {
+            border-bottom: 1px solid var(--border);
+            background: rgba(31,35,48,0.6);
+        }
+        th {
+            padding: 12px 20px;
+            text-align: left;
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--muted);
+            font-weight: 500;
+        }
+        tbody tr {
+            border-bottom: 1px solid var(--border);
+            transition: background 0.12s;
+        }
+        tbody tr:last-child { border-bottom: none; }
+        tbody tr:hover { background: rgba(255,255,255,0.025); }
+        td { padding: 14px 20px; font-size: 0.88rem; vertical-align: middle; }
+
+        .company-cell { display: flex; align-items: center; gap: 10px; }
+        .company-icon {
+            width: 32px; height: 32px;
+            border-radius: 8px;
+            background: var(--border);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--accent);
+            font-family: 'Syne', sans-serif;
+            flex-shrink: 0;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+        .badge-pending  { background: rgba(255,170,59,0.12);  color: var(--warn); }
+        .badge-accepted { background: rgba(77,219,155,0.12);  color: var(--ok); }
+        .badge-rejected { background: rgba(255,92,92,0.12);   color: var(--danger); }
+        .badge-default  { background: rgba(61,127,255,0.12);  color: var(--accent2); }
+        .badge-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+
+        /* ── EMPTY STATE ── */
+        .empty {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--muted);
+        }
+        .empty-icon { font-size: 2.5rem; margin-bottom: 12px; opacity: 0.4; }
+        .empty p { font-size: 0.9rem; }
+
+        /* ── PROFILE CARD ── */
+        .profile-section { display: grid; grid-template-columns: 320px 1fr; gap: 20px; }
+        .profile-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 28px;
+        }
+        .profile-avatar-lg {
+            width: 64px; height: 64px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent2), var(--accent));
+            display: flex; align-items: center; justify-content: center;
+            font-family: 'Syne', sans-serif;
+            font-weight: 800;
+            font-size: 1.4rem;
+            color: #0d0f14;
+            margin-bottom: 16px;
+        }
+        .profile-name {
+            font-family: 'Syne', sans-serif;
+            font-weight: 700;
+            font-size: 1.1rem;
+            margin-bottom: 4px;
+        }
+        .profile-email { font-size: 0.85rem; color: var(--muted); margin-bottom: 20px; }
+        .profile-divider { border: none; border-top: 1px solid var(--border); margin: 16px 0; }
+        .profile-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .profile-key { font-size: 0.8rem; color: var(--muted); }
+        .profile-val { font-size: 0.85rem; font-weight: 500; }
+
+        .activity-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 28px;
+        }
+        .activity-item {
+            display: flex;
+            gap: 14px;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border);
+        }
+        .activity-item:last-child { border-bottom: none; }
+        .activity-dot {
+            width: 10px; height: 10px;
+            border-radius: 50%;
+            background: var(--accent);
+            margin-top: 5px;
+            flex-shrink: 0;
+            position: relative;
+        }
+        .activity-dot::after {
+            content: '';
+            position: absolute;
+            top: 10px; left: 4px;
+            width: 1px;
+            height: calc(100% + 16px);
+            background: var(--border);
+        }
+        .activity-item:last-child .activity-dot::after { display: none; }
+        .activity-text { font-size: 0.88rem; line-height: 1.5; }
+        .activity-time { font-size: 0.75rem; color: var(--muted); margin-top: 2px; }
+    </style>
+</head>
+<body>
+<div class="shell">
+
+    <!-- ── SIDEBAR ── -->
+    <aside class="sidebar">
+        <div class="logo">
+            <span class="logo-dot"></span> JobTrack
+        </div>
+
+        <nav class="nav">
+            <span class="nav-label">Menu</span>
+            <a href="/user/dashboard" class="active">
+                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+                Dashboard
+            </a>
+            <a href="/user/jobs">
+                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>
+                Browse Jobs
+            </a>
+
+            <span class="nav-label">Account</span>
+            <a href="#">
+                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+                Profile
+            </a>
+            <a href="#">
+                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+                Notifications
+            </a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <div class="user-chip">
+                <div class="avatar" th:text="${userName != null ? userName.substring(0,1).toUpperCase() : 'U'}">U</div>
+                <div class="user-info">
+                    <div class="user-name" th:text="${userName != null ? userName : 'User'}">User</div>
+                    <div class="user-role" th:text="${userRole != null ? userRole : 'USER'}">USER</div>
+                </div>
+            </div>
+            <a href="/logout" class="btn btn-danger" style="margin-top:14px; width:100%; justify-content:center;">
+                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                Logout
+            </a>
+        </div>
+    </aside>
+
+    <!-- ── MAIN ── -->
+    <div class="main">
+
+        <!-- Topbar -->
+        <header class="topbar">
+            <span class="page-title">My Dashboard</span>
+            <div class="topbar-actions">
+                <a href="/user/jobs" class="btn btn-primary">
+                    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                    New Application
+                </a>
+            </div>
+        </header>
+
+        <div class="content">
+
+            <!-- Flash Message -->
+            <div class="flash" th:if="${success}">
+                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+                <span th:text="${success}">Applied Successfully! ✅</span>
+            </div>
+
+            <!-- Stats Row -->
+            <div class="stats-row">
+                <div class="stat-card" style="--card-accent: var(--accent);">
+                    <div class="stat-label">Total Applied</div>
+                    <div class="stat-value" th:text="${totalApps != null ? totalApps : 0}">0</div>
+                    <div class="stat-sub">All time applications</div>
+                </div>
+                <div class="stat-card" style="--card-accent: var(--ok);">
+                    <div class="stat-label">Accepted</div>
+                    <div class="stat-value" th:text="${applications != null ? #lists.size(applications.?[status == 'ACCEPTED']) : 0}">—</div>
+                    <div class="stat-sub">Offers received</div>
+                </div>
+                <div class="stat-card" style="--card-accent: var(--warn);">
+                    <div class="stat-label">Pending</div>
+                    <div class="stat-value" th:text="${applications != null ? #lists.size(applications.?[status == 'PENDING' or status == null]) : 0}">—</div>
+                    <div class="stat-sub">Awaiting response</div>
+                </div>
+                <div class="stat-card" style="--card-accent: var(--danger);">
+                    <div class="stat-label">Rejected</div>
+                    <div class="stat-value"th:text="${applications != null ? #lists.size(applications.?[status == 'REJECTED']) : 0}">—</div>
+                    <div class="stat-sub">Not selected</div>
+                </div>
+            </div>
+
+            <!-- Profile + Activity -->
+            <div class="profile-section">
+                <div class="profile-card">
+                    <div class="profile-avatar-lg" th:text="${userName != null ? userName.substring(0,1).toUpperCase() : 'U'}">U</div>
+                    <div class="profile-name" th:text="${userName != null ? userName : 'User'}">User Name</div>
+                    <div class="profile-email" th:text="${userEmail != null ? userEmail : '—'}">user@email.com</div>
+                    <hr class="profile-divider" />
+                    <div class="profile-row">
+                        <span class="profile-key">User ID</span>
+                        <span class="profile-val" th:text="${userId != null ? '#' + userId : '—'}">#0</span>
+                    </div>
+                    <div class="profile-row">
+                        <span class="profile-key">Role</span>
+                        <span class="profile-val">
+                            <span class="badge badge-default" th:text="${userRole != null ? userRole : 'USER'}">USER</span>
+                        </span>
+                    </div>
+                    <div class="profile-row">
+                        <span class="profile-key">Applications</span>
+                        <span class="profile-val" th:text="${totalApps != null ? totalApps : 0}">0</span>
+                    </div>
+                    <hr class="profile-divider" />
+                    <a href="#" class="btn btn-ghost" style="width:100%; justify-content:center; margin-top:4px;">Edit Profile</a>
+                </div>
+
+                <div class="activity-card">
+                    <div class="section-header">
+                        <span class="section-title">Recent Activity</span>
+                    </div>
+
+                    <div th:if="${applications != null and not #lists.isEmpty(applications)}">
+                        <div class="activity-item"
+                             th:each="app, stat : ${applications}"
+                             th:if="${stat.index < 5}">
+                            <div class="activity-dot"></div>
+                            <div>
+                                <div class="activity-text">
+                                    Applied to <strong th:text="${app.company != null ? app.company.companyName : 'Unknown'}">Company</strong>
+                                    <span th:if="${app.position != null}"> for <em th:text="${app.position}">Position</em></span>
+                                </div>
+                                <div class="activity-time" th:text="${app.appliedDate != null ? app.appliedDate : 'Recently'}">Recently</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="empty" th:if="${applications == null or #lists.isEmpty(applications)}">
+                        <div class="empty-icon">📭</div>
+                        <p>No activity yet. Start applying!</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Applications Table -->
+            <div>
+                <div class="section-header">
+                    <span class="section-title">All Applications</span>
+                    <a href="/user/jobs" class="btn btn-ghost" style="font-size:0.8rem; padding:6px 14px;">Browse More Jobs →</a>
+                </div>
+
+                <div class="table-wrap">
+                    <table th:if="${applications != null and not #lists.isEmpty(applications)}">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Company</th>
+                                <th>Position</th>
+                                <th>Contact Email</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="app, stat : ${applications}">
+                                <td th:text="${stat.count}" style="color:var(--muted); font-size:0.8rem;">1</td>
+                                <td>
+                                    <div class="company-cell">
+                                        <div class="company-icon"
+                                             th:text="${app.company != null ? app.company.companyName.substring(0,1).toUpperCase() : '?'}">C</div>
+                                        <span th:text="${app.company != null ? app.company.companyName : 'Unknown'}">Company</span>
+                                    </div>
+                                </td>
+                                <td th:text="${app.position != null ? app.position : '—'}">Position</td>
+                                <td th:text="${app.email != null ? app.email : '—'}">email@example.com</td>
+                                <td>
+                                    <span th:if="${app.status == 'ACCEPTED'}"  th:text="${acceptedCount}" class="badge badge-accepted"><span class="badge-dot"></span> Accepted</span>
+                                    <span th:if="${app.status == 'REJECTED'}"    th:text="${rejectedCount}" class="badge badge-rejected"><span class="badge-dot"></span> Rejected</span>
+                                    <span th:if="${app.status == 'PENDING'}"  th:text="${pendingCount}"  class="badge badge-pending"><span class="badge-dot"></span> Pending</span>
+                                    
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <div class="empty" th:if="${applications == null or #lists.isEmpty(applications)}">
+                        <div class="empty-icon">🗂️</div>
+                        <p>You haven't applied to any jobs yet.</p>
+                        <a href="/user/jobs" class="btn btn-primary" style="margin-top:16px;">Browse Jobs</a>
+                    </div>
+                </div>
+            </div>
+
+        </div><!-- /content -->
+    </div><!-- /main -->
+
+</div><!-- /shell -->
+</body>
+</html>

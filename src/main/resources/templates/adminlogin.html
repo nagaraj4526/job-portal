@@ -1,0 +1,1032 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+  <title>Admin Login · Job Portal</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Clash+Display:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&family=Manrope:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --ink:     #0a0a0f;
+      --ink2:    #0f0f1a;
+      --ink3:    #1a1a2e;
+      --red:     #ef4444;
+      --red2:    #dc2626;
+      --amber:   #f59e0b;
+      --gold:    #f5c842;
+      --teal:    #00d4aa;
+      --muted:   rgba(255,255,255,0.4);
+      --border:  rgba(255,255,255,0.07);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--ink);
+      font-family: 'Manrope', sans-serif;
+      color: #fff;
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      overflow-y: auto;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    body::before {
+      content: '';
+      position: fixed; inset: 0; z-index: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+      opacity: 0.025; pointer-events: none;
+    }
+
+    /* ── LEFT VISUAL PANEL ── */
+    .visual-panel {
+      position: relative; z-index: 2;
+      background: var(--ink2);
+      border-right: 1px solid var(--border);
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      padding: 60px 52px;
+      overflow: hidden;
+      min-height: 100vh;
+    }
+
+    .rings {
+      position: absolute;
+      width: 600px; height: 600px;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+    }
+    .ring {
+      position: absolute; border-radius: 50%;
+      border: 1px solid rgba(239,68,68,0.1);
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      animation: ring-pulse 4s ease-in-out infinite;
+    }
+    .ring:nth-child(1) { width: 180px; height: 180px; animation-delay: 0s;   border-color: rgba(239,68,68,0.2); }
+    .ring:nth-child(2) { width: 300px; height: 300px; animation-delay: 0.6s; }
+    .ring:nth-child(3) { width: 420px; height: 420px; animation-delay: 1.2s; }
+    .ring:nth-child(4) { width: 560px; height: 560px; animation-delay: 1.8s; }
+    @keyframes ring-pulse {
+      0%,100% { opacity:0.4; transform:translate(-50%,-50%)scale(1); }
+      50%      { opacity:0.8; transform:translate(-50%,-50%)scale(1.03); }
+    }
+
+    .visual-panel::before {
+      content: '';
+      position: absolute; inset: 0;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+    }
+    .visual-panel::after {
+      content: '';
+      position: absolute;
+      width: 400px; height: 400px; border-radius: 50%;
+      background: radial-gradient(circle, rgba(239,68,68,0.12) 0%, transparent 70%);
+      top: 50%; left: 50%; transform: translate(-50%, -50%);
+      filter: blur(60px); pointer-events: none;
+      animation: blob-glow 6s ease-in-out infinite alternate;
+    }
+    @keyframes blob-glow { from{opacity:0.7} to{opacity:1} }
+
+    .shield-wrap { position: relative; z-index: 2; text-align: center; }
+    .shield-icon {
+      width: 96px; height: 96px; border-radius: 28px;
+      background: rgba(239,68,68,0.12);
+      border: 1.5px solid rgba(239,68,68,0.3);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 2.6rem; color: var(--red);
+      margin: 0 auto 32px;
+      box-shadow: 0 0 40px rgba(239,68,68,0.2);
+      animation: shield-float 4s ease-in-out infinite;
+      transition: all 0.5s ease;
+    }
+    /* Icon morphs when on forgot-password view */
+    .shield-icon.forgot-mode {
+      background: rgba(245,200,66,0.1);
+      border-color: rgba(245,200,66,0.3);
+      color: var(--gold);
+      box-shadow: 0 0 40px rgba(245,200,66,0.15);
+    }
+    .shield-icon.reset-mode {
+      background: rgba(0,212,170,0.1);
+      border-color: rgba(0,212,170,0.3);
+      color: var(--teal);
+      box-shadow: 0 0 40px rgba(0,212,170,0.15);
+    }
+    @keyframes shield-float {
+      0%,100% { transform: translateY(0); }
+      50%      { transform: translateY(-8px); }
+    }
+
+    .panel-eyebrow {
+      display: inline-flex; align-items: center; gap: 7px;
+      background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.25);
+      border-radius: 30px; padding: 4px 14px;
+      font-size: 0.68rem; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase;
+      color: var(--red); margin-bottom: 18px;
+      transition: all 0.4s ease;
+    }
+    .panel-eyebrow.gold-mode {
+      background: rgba(245,200,66,0.08); border-color: rgba(245,200,66,0.25);
+      color: var(--gold);
+    }
+    .panel-eyebrow.teal-mode {
+      background: rgba(0,212,170,0.08); border-color: rgba(0,212,170,0.25);
+      color: var(--teal);
+    }
+    .red-dot  { width:5px;height:5px;border-radius:50%;background:var(--red); animation:blink 1.5s ease-in-out infinite; }
+    .gold-dot { width:5px;height:5px;border-radius:50%;background:var(--gold);animation:blink 1.5s ease-in-out infinite; }
+    .teal-dot { width:5px;height:5px;border-radius:50%;background:var(--teal);animation:blink 1.5s ease-in-out infinite; }
+    @keyframes blink { 0%,100%{opacity:1}50%{opacity:0.3} }
+
+    .panel-title {
+      font-family: 'Clash Display', sans-serif;
+      font-size: clamp(2rem,3vw,2.6rem); font-weight: 700;
+      letter-spacing: -0.02em; line-height: 1.1; margin-bottom: 12px;
+      transition: opacity 0.4s;
+    }
+    .panel-title em { font-family: 'Instrument Serif', serif; font-style: italic; color: var(--red); transition: color 0.4s; }
+    .panel-title em.gold { color: var(--gold); }
+    .panel-title em.teal { color: var(--teal); }
+    .panel-desc {
+      color: var(--muted); font-size: 0.88rem; line-height: 1.7;
+      max-width: 340px; margin: 0 auto 40px;
+      transition: opacity 0.4s;
+    }
+
+    .perk-list { display: flex; flex-direction: column; gap: 12px; width: 100%; max-width: 320px; }
+    .perk-item {
+      display: flex; align-items: center; gap: 12px;
+      background: rgba(255,255,255,0.03); border: 1px solid var(--border);
+      border-radius: 12px; padding: 12px 16px;
+      font-size: 0.82rem; color: var(--muted);
+      transition: border-color 0.3s, background 0.3s, color 0.3s;
+    }
+    .perk-item:hover { border-color: rgba(239,68,68,0.2); background: rgba(239,68,68,0.04); color: #fff; }
+    .perk-icon {
+      width: 32px; height: 32px; border-radius: 8px; flex-shrink: 0;
+      background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.2);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.8rem; color: var(--red);
+      transition: all 0.3s;
+    }
+
+    .panel-brand {
+      position: absolute; bottom: 28px; left: 32px;
+      font-family: 'Clash Display', sans-serif;
+      font-size: 0.85rem; font-weight: 700;
+      color: rgba(255,255,255,0.2);
+      display: flex; align-items: center; gap: 7px;
+      text-decoration: none;
+    }
+    .brand-dot { width:6px;height:6px;border-radius:50%;background:var(--gold);animation:pd 2s ease-in-out infinite; }
+    @keyframes pd { 0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.5);opacity:.6} }
+
+    /* ── RIGHT FORM PANEL ── */
+    .form-panel {
+      position: relative; z-index: 2;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: flex-start;
+      padding: 80px 52px 60px;
+      overflow-y: auto;
+      min-height: 100vh;
+    }
+    .form-panel::before {
+      content: '';
+      position: fixed;
+      width: 350px; height: 350px; border-radius: 50%;
+      background: radial-gradient(circle, rgba(245,158,11,0.07) 0%, transparent 70%);
+      bottom: -80px; right: -80px;
+      filter: blur(80px); pointer-events: none; z-index: 0;
+      animation: bf 14s ease-in-out infinite alternate;
+    }
+    @keyframes bf { from{transform:translate(0,0)scale(1)} to{transform:translate(20px,15px)scale(1.06)} }
+
+    .back-link {
+      position: fixed; top: 28px; right: 32px; z-index: 10;
+      display: inline-flex; align-items: center; gap: 6px;
+      color: var(--muted); text-decoration: none;
+      font-size: 0.78rem; font-weight: 600;
+      transition: color 0.2s;
+    }
+    .back-link:hover { color: #fff; }
+
+    /* ── FORM VIEWS ── */
+    .form-card {
+      width: 100%; max-width: 400px;
+      position: relative; z-index: 2;
+      margin: auto 0;
+    }
+
+    /* Each view is a separate div, toggled with JS */
+    .view {
+      animation: view-in 0.45s cubic-bezier(0.22,1,0.36,1) both;
+    }
+    .view.hidden { display: none !important; }
+    @keyframes view-in {
+      from { opacity:0; transform:translateY(22px)scale(0.98); }
+      to   { opacity:1; transform:translateY(0)scale(1); }
+    }
+
+    .admin-badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.25);
+      border-radius: 10px; padding: 8px 16px; margin-bottom: 24px;
+      transition: all 0.4s;
+    }
+    .admin-badge.gold-badge {
+      background: rgba(245,200,66,0.08); border-color: rgba(245,200,66,0.25);
+    }
+    .admin-badge.teal-badge {
+      background: rgba(0,212,170,0.08); border-color: rgba(0,212,170,0.25);
+    }
+    .badge-icon {
+      width: 28px; height: 28px; border-radius: 7px;
+      background: rgba(239,68,68,0.15); border: 1px solid rgba(239,68,68,0.25);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.8rem; color: var(--red);
+      transition: all 0.3s;
+    }
+    .badge-icon.gold { background: rgba(245,200,66,0.1); border-color: rgba(245,200,66,0.25); color: var(--gold); }
+    .badge-icon.teal { background: rgba(0,212,170,0.1);  border-color: rgba(0,212,170,0.25);  color: var(--teal); }
+    .badge-text { font-size: 0.78rem; font-weight: 700; letter-spacing: 0.05em; color: rgba(255,255,255,0.7); }
+    .badge-text span.r { color: var(--red); }
+    .badge-text span.g { color: var(--gold); }
+    .badge-text span.t { color: var(--teal); }
+
+    .form-title {
+      font-family: 'Clash Display', sans-serif;
+      font-size: 1.9rem; font-weight: 700;
+      letter-spacing: -0.02em; line-height: 1.1; margin-bottom: 6px;
+    }
+    .form-title em        { font-family:'Instrument Serif',serif; font-style:italic; color:var(--red);  }
+    .form-title em.gold   { color: var(--gold); }
+    .form-title em.teal   { color: var(--teal); }
+    .form-sub { color: var(--muted); font-size: 0.84rem; margin-bottom: 32px; line-height: 1.6; }
+
+    /* Alerts */
+    .alert-box {
+      border-radius: 12px; padding: 12px 16px; font-size: 0.82rem;
+      display: flex; align-items: flex-start; gap: 10px; margin-bottom: 22px;
+    }
+    .alert-box i { margin-top: 1px; flex-shrink: 0; }
+    .alert-error   { background:rgba(239,68,68,0.1);  border:1px solid rgba(239,68,68,0.25);  color:#fca5a5; }
+    .alert-success { background:rgba(74,222,128,0.1); border:1px solid rgba(74,222,128,0.25); color:#86efac; }
+    .alert-info    { background:rgba(96,165,250,0.1); border:1px solid rgba(96,165,250,0.25); color:#93c5fd; }
+    .alert-warning { background:rgba(251,191,36,0.1); border:1px solid rgba(251,191,36,0.25); color:#fde68a; }
+
+    /* Fields */
+    .field-label {
+      font-size: 0.72rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+      color: rgba(255,255,255,0.4); margin-bottom: 8px; display: block;
+    }
+    .input-wrap { position: relative; }
+    .input-icon {
+      position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
+      color: rgba(255,255,255,0.28); font-size: 0.88rem; pointer-events: none;
+      transition: color 0.2s;
+    }
+    .input-wrap:focus-within .input-icon { color: var(--red); }
+    .input-wrap.gold-focus:focus-within .input-icon { color: var(--gold); }
+    .input-wrap.teal-focus:focus-within .input-icon { color: var(--teal); }
+    .field-input {
+      width: 100%;
+      background: rgba(255,255,255,0.05); border: 1.5px solid var(--border);
+      border-radius: 12px; color: #fff;
+      padding: 13px 16px 13px 42px;
+      font-family: 'Manrope', sans-serif; font-size: 0.9rem;
+      transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+    }
+    .field-input::placeholder { color: rgba(255,255,255,0.2); }
+    .field-input:focus {
+      outline: none;
+      border-color: rgba(239,68,68,0.45);
+      box-shadow: 0 0 0 4px rgba(239,68,68,0.09);
+      background: rgba(255,255,255,0.07);
+    }
+    .field-input.gold-field:focus {
+      border-color: rgba(245,200,66,0.45);
+      box-shadow: 0 0 0 4px rgba(245,200,66,0.08);
+    }
+    .field-input.teal-field:focus {
+      border-color: rgba(0,212,170,0.45);
+      box-shadow: 0 0 0 4px rgba(0,212,170,0.08);
+    }
+
+    .pw-input { padding-right: 44px; }
+    .toggle-pw {
+      position: absolute; right: 13px; top: 50%; transform: translateY(-50%);
+      background: none; border: none; color: rgba(255,255,255,0.28);
+      cursor: pointer; font-size: 0.88rem; padding: 4px; transition: color 0.2s;
+    }
+    .toggle-pw:hover { color: rgba(255,255,255,0.7); }
+
+    .form-divider {
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--border) 40%, var(--border) 60%, transparent);
+      margin: 24px 0;
+    }
+
+    /* Forgot password link inside login form */
+    .forgot-row {
+      display: flex; justify-content: flex-end; margin-top: 6px;
+    }
+    .forgot-link {
+      font-size: 0.75rem; color: rgba(255,255,255,0.3); text-decoration: none;
+      font-weight: 600; letter-spacing: 0.03em;
+      transition: color 0.2s; cursor: pointer; background: none; border: none; padding: 0;
+    }
+    .forgot-link:hover { color: var(--gold); }
+
+    /* Buttons */
+    .btn-primary {
+      width: 100%; color: #fff;
+      border: none; border-radius: 12px; padding: 14px;
+      font-family: 'Manrope', sans-serif; font-weight: 800; font-size: 0.95rem;
+      cursor: pointer; letter-spacing: 0.02em;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+    }
+    .btn-primary:active { transform: translateY(0) !important; }
+    .btn-red  { background: var(--red);  box-shadow: 0 4px 20px rgba(239,68,68,0.25); }
+    .btn-red:hover  { background: var(--red2); transform: translateY(-2px); box-shadow: 0 8px 28px rgba(239,68,68,0.4); }
+    .btn-gold { background: linear-gradient(135deg,#f5c842,#e8a800); box-shadow: 0 4px 20px rgba(245,200,66,0.2); color: #1a1000; }
+    .btn-gold:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(245,200,66,0.35); }
+    .btn-teal { background: linear-gradient(135deg,#00d4aa,#00b090); box-shadow: 0 4px 20px rgba(0,212,170,0.2); color: #001a14; }
+    .btn-teal:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(0,212,170,0.35); }
+    .btn-ghost {
+      width: 100%; background: rgba(255,255,255,0.04); color: var(--muted);
+      border: 1.5px solid var(--border); border-radius: 12px; padding: 13px;
+      font-family: 'Manrope', sans-serif; font-weight: 700; font-size: 0.88rem;
+      cursor: pointer; letter-spacing: 0.02em;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      transition: background 0.2s, border-color 0.2s, color 0.2s, transform 0.15s;
+      margin-top: 10px;
+    }
+    .btn-ghost:hover { background: rgba(255,255,255,0.07); border-color: rgba(255,255,255,0.15); color: #fff; transform: translateY(-1px); }
+
+    /* Loading spinner */
+    .spin { display:inline-block; width:15px; height:15px; border:2px solid rgba(255,255,255,0.3); border-top-color:currentColor; border-radius:50%; animation:spin 0.7s linear infinite; }
+    @keyframes spin { to{transform:rotate(360deg)} }
+
+    /* OTP digits */
+    .otp-digits {
+      display: flex; gap: 8px; justify-content: center; margin: 6px 0 4px;
+    }
+    .otp-digit {
+      width: 50px; height: 56px; border-radius: 12px;
+      background: rgba(255,255,255,0.05); border: 1.5px solid var(--border);
+      color: #fff; font-family: 'Clash Display', sans-serif; font-size: 1.4rem;
+      font-weight: 700; text-align: center;
+      transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+    }
+    .otp-digit:focus {
+      outline: none; border-color: rgba(245,200,66,0.5);
+      box-shadow: 0 0 0 4px rgba(245,200,66,0.08);
+      background: rgba(245,200,66,0.04);
+    }
+    .otp-digit.filled { border-color: rgba(245,200,66,0.35); }
+    .otp-hint {
+      font-size: 0.72rem; color: var(--muted); text-align: center; margin-top: 10px;
+    }
+    .otp-hint button {
+      background: none; border: none; color: var(--gold); font-weight: 700;
+      font-size: 0.72rem; cursor: pointer; padding: 0; transition: color 0.2s;
+    }
+    .otp-hint button:hover { color: var(--gold2); text-decoration: underline; }
+
+    /* Timer */
+    .timer-ring-wrap {
+      display: flex; align-items: center; justify-content: center;
+      gap: 10px; margin-bottom: 20px;
+    }
+    .timer-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: rgba(245,200,66,0.08); border: 1px solid rgba(245,200,66,0.2);
+      border-radius: 20px; padding: 5px 14px;
+      font-size: 0.78rem; font-weight: 700; color: var(--gold);
+      font-family: 'Clash Display', sans-serif; letter-spacing: 0.05em;
+    }
+
+    /* New password strength */
+    .strength-bar { height: 3px; border-radius: 4px; background: var(--border); overflow: hidden; margin-top: 8px; }
+    .strength-fill { height: 100%; width: 0; border-radius: 4px; transition: width 0.4s, background 0.4s; }
+    .strength-label { font-size: 0.7rem; color: var(--muted); margin-top: 5px; }
+
+    /* Progress breadcrumb */
+    .progress-crumb {
+      display: flex; align-items: center; gap: 6px; margin-bottom: 28px;
+    }
+    .crumb {
+      display: flex; align-items: center; gap: 5px;
+      font-size: 0.68rem; font-weight: 700; letter-spacing: 0.08em;
+      text-transform: uppercase; color: rgba(255,255,255,0.2);
+    }
+    .crumb.active { color: var(--gold); }
+    .crumb.done   { color: rgba(74,222,128,0.7); }
+    .crumb-dot { width: 20px; height: 20px; border-radius: 50%; border: 1.5px solid currentColor; display: flex; align-items: center; justify-content: center; font-size: 0.6rem; }
+    .crumb-line { flex: 1; height: 1px; background: var(--border); max-width: 28px; }
+
+    /* Reg + security footer */
+    .reg-link { margin-top: 20px; text-align: center; font-size: 0.8rem; color: var(--muted); }
+    .reg-link a { color: var(--red); text-decoration: none; font-weight: 600; transition: color 0.2s; }
+    .reg-link a:hover { color: #f87171; text-decoration: underline; }
+    .security-note { display: flex; align-items: center; gap: 7px; margin-top: 18px; font-size: 0.7rem; color: rgba(255,255,255,0.2); justify-content: center; }
+    .security-note i { color: rgba(239,68,68,0.5); }
+
+    @media (max-width: 900px) {
+      body { grid-template-columns: 1fr; overflow-y: auto; overflow-x: hidden; }
+      .visual-panel { display: none; }
+      .form-panel { padding: 80px 24px 60px; min-height: 100vh; justify-content: flex-start; }
+      .form-card { margin: auto; }
+      .back-link { top: 20px; right: 20px; }
+      .otp-digit { width: 40px; height: 48px; font-size: 1.2rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ── LEFT VISUAL PANEL ── -->
+  <div class="visual-panel" id="visualPanel">
+    <div class="rings">
+      <div class="ring"></div><div class="ring"></div>
+      <div class="ring"></div><div class="ring"></div>
+    </div>
+
+    <div class="shield-wrap">
+      <div class="shield-icon" id="panelShieldIcon">
+        <i class="bi bi-shield-lock-fill" id="panelIcon"></i>
+      </div>
+
+      <div class="panel-eyebrow" id="panelEyebrow">
+        <span class="red-dot" id="panelDot"></span>
+        <span id="panelEyebrowText">Restricted Access</span>
+      </div>
+      <h2 class="panel-title" id="panelTitle">Admin <em id="panelTitleEm">Control</em><br><span id="panelTitleSub">Center</span></h2>
+      <p class="panel-desc" id="panelDesc">Secure portal for administrators. Manage jobs, users, and applications from one place.</p>
+
+      <div class="perk-list" id="perkList">
+        <div class="perk-item"><div class="perk-icon"><i class="bi bi-briefcase-fill"></i></div>Manage all job listings</div>
+        <div class="perk-item"><div class="perk-icon"><i class="bi bi-people-fill"></i></div>View &amp; manage applicants</div>
+        <div class="perk-item"><div class="perk-icon"><i class="bi bi-bar-chart-fill"></i></div>Dashboard analytics</div>
+        <div class="perk-item"><div class="perk-icon"><i class="bi bi-gear-fill"></i></div>System configuration</div>
+      </div>
+    </div>
+
+    <a href="/" class="panel-brand"><span class="brand-dot"></span> JobPortal</a>
+  </div>
+
+  <!-- ── RIGHT FORM PANEL ── -->
+  <div class="form-panel">
+    <a href="/" class="back-link"><i class="bi bi-arrow-left"></i> Home</a>
+
+    <div class="form-card">
+
+      <!-- ════════════════════════════════
+           VIEW 1 · LOGIN
+      ════════════════════════════════ -->
+      <div class="view" id="viewLogin">
+
+        <div class="admin-badge" id="loginBadge">
+          <div class="badge-icon"><i class="bi bi-shield-lock"></i></div>
+          <div class="badge-text"><span class="r">Admin</span> · Secure Login</div>
+        </div>
+
+        <h1 class="form-title">Sign <em>In</em> to<br>Dashboard</h1>
+        <p class="form-sub">This portal is restricted to authorized administrators only.</p>
+
+        <!-- Thymeleaf error from controller -->
+        <div th:if="${error}" class="alert-box alert-error">
+          <i class="bi bi-exclamation-triangle-fill"></i>
+          <span th:text="${error}">Invalid credentials. Access denied.</span>
+        </div>
+
+        <!-- Thymeleaf success (after password reset) -->
+        <div th:if="${success}" class="alert-box alert-success">
+          <i class="bi bi-check-circle-fill"></i>
+          <span th:text="${success}">Password reset successful. Please sign in.</span>
+        </div>
+
+        <form th:action="@{/adminlogin}" method="post" id="loginForm">
+
+          <div class="mb-4">
+            <label class="field-label" for="login-email">Admin Email</label>
+            <div class="input-wrap">
+              <i class="bi bi-envelope input-icon"></i>
+              <input type="email" id="login-email" name="email"
+                     class="field-input"
+                     placeholder="admin@jobportal.com"
+                     required autocomplete="email" />
+            </div>
+          </div>
+
+          <div class="mb-1">
+            <label class="field-label" for="login-password">Password</label>
+            <div class="input-wrap">
+              <i class="bi bi-lock input-icon"></i>
+              <input type="password" id="login-password" name="password"
+                     class="field-input pw-input"
+                     placeholder="Enter admin password"
+                     required autocomplete="current-password" />
+              <button type="button" class="toggle-pw" onclick="togglePw('login-password','pwIcon1')">
+                <i class="bi bi-eye" id="pwIcon1"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Forgot Password link -->
+          <div class="forgot-row">
+            <button type="button" class="forgot-link" onclick="goTo('viewForgot')">
+              Forgot password?
+            </button>
+          </div>
+
+          <div class="form-divider"></div>
+
+          <button type="submit" class="btn-primary btn-red">
+            <i class="bi bi-shield-lock-fill"></i> Access Dashboard
+          </button>
+
+        </form>
+
+        <div class="reg-link">
+          Need an admin account?
+          <a th:href="@{/adreg}" href="/adreg">Register here →</a>
+        </div>
+        <div class="security-note">
+          <i class="bi bi-lock-fill"></i> 256-bit encrypted · Authorized access only
+        </div>
+      </div><!-- /viewLogin -->
+
+
+      <!-- ════════════════════════════════
+           VIEW 2 · FORGOT PASSWORD (enter email)
+      ════════════════════════════════ -->
+      <div class="view hidden" id="viewForgot">
+
+        <!-- Step breadcrumb -->
+        <div class="progress-crumb">
+          <div class="crumb active"><div class="crumb-dot">1</div><span>Email</span></div>
+          <div class="crumb-line"></div>
+          <div class="crumb" id="crumb2"><div class="crumb-dot">2</div><span>OTP</span></div>
+          <div class="crumb-line"></div>
+          <div class="crumb" id="crumb3"><div class="crumb-dot">3</div><span>Reset</span></div>
+        </div>
+
+        <div class="admin-badge gold-badge">
+          <div class="badge-icon gold"><i class="bi bi-key-fill"></i></div>
+          <div class="badge-text"><span class="g">Forgot</span> · Password Recovery</div>
+        </div>
+
+        <h1 class="form-title">Recover <em class="gold">Admin</em><br>Password</h1>
+        <p class="form-sub">Enter your registered admin email and we'll send a one-time OTP to reset your password.</p>
+
+        <div class="alert-box alert-warning" style="margin-bottom:20px;">
+          <i class="bi bi-info-circle-fill"></i>
+          <span>OTP is valid for <strong>5 minutes</strong>. Only registered admin emails will receive it.</span>
+        </div>
+
+        <div id="forgotAlertBox"></div>
+
+        <div class="mb-4">
+          <label class="field-label" for="forgot-email">Registered Admin Email</label>
+          <div class="input-wrap gold-focus">
+            <i class="bi bi-envelope input-icon"></i>
+            <input type="email" id="forgot-email"
+                   class="field-input gold-field"
+                   placeholder="admin@jobportal.com"
+                   autocomplete="email" />
+          </div>
+        </div>
+
+        <button type="button" class="btn-primary btn-gold" id="sendForgotOtpBtn" onclick="sendForgotOtp()">
+          <i class="bi bi-send-fill"></i> Send Recovery OTP
+        </button>
+
+        <button type="button" class="btn-ghost" onclick="goTo('viewLogin')">
+          <i class="bi bi-arrow-left"></i> Back to Login
+        </button>
+
+      </div><!-- /viewForgot -->
+
+
+      <!-- ════════════════════════════════
+           VIEW 3 · OTP VERIFICATION
+      ════════════════════════════════ -->
+      <div class="view hidden" id="viewOtp">
+
+        <div class="progress-crumb">
+          <div class="crumb done"><div class="crumb-dot"><i class="bi bi-check" style="font-size:0.6rem;"></i></div><span>Email</span></div>
+          <div class="crumb-line"></div>
+          <div class="crumb active"><div class="crumb-dot">2</div><span>OTP</span></div>
+          <div class="crumb-line"></div>
+          <div class="crumb" id="crumb3b"><div class="crumb-dot">3</div><span>Reset</span></div>
+        </div>
+
+        <div class="admin-badge gold-badge">
+          <div class="badge-icon gold"><i class="bi bi-shield-check"></i></div>
+          <div class="badge-text"><span class="g">Verify</span> · One-Time Password</div>
+        </div>
+
+        <h1 class="form-title">Enter <em class="gold">OTP</em><br>Code</h1>
+        <p class="form-sub">A 6-digit code was sent to <strong id="otpSentEmail" style="color:#fff;"></strong>. It expires in 5 minutes.</p>
+
+        <div id="otpAlertBox"></div>
+
+        <!-- Timer badge -->
+        <div class="timer-ring-wrap">
+          <div class="timer-badge">
+            <i class="bi bi-clock-fill"></i>
+            <span id="otpCountdown">05:00</span>
+          </div>
+        </div>
+
+        <!-- 6-digit OTP input -->
+        <div class="otp-digits">
+          <input type="text" class="otp-digit" maxlength="1" inputmode="numeric" pattern="[0-9]" oninput="otpNav(this,0)" onkeydown="otpBack(event,0)" />
+          <input type="text" class="otp-digit" maxlength="1" inputmode="numeric" pattern="[0-9]" oninput="otpNav(this,1)" onkeydown="otpBack(event,1)" />
+          <input type="text" class="otp-digit" maxlength="1" inputmode="numeric" pattern="[0-9]" oninput="otpNav(this,2)" onkeydown="otpBack(event,2)" />
+          <input type="text" class="otp-digit" maxlength="1" inputmode="numeric" pattern="[0-9]" oninput="otpNav(this,3)" onkeydown="otpBack(event,3)" />
+          <input type="text" class="otp-digit" maxlength="1" inputmode="numeric" pattern="[0-9]" oninput="otpNav(this,4)" onkeydown="otpBack(event,4)" />
+          <input type="text" class="otp-digit" maxlength="1" inputmode="numeric" pattern="[0-9]" oninput="otpNav(this,5)" onkeydown="otpBack(event,5)" />
+        </div>
+        <p class="otp-hint">
+          Didn't receive it?
+          <button onclick="resendOtp()" id="resendBtn">Resend OTP</button>
+        </p>
+
+        <div style="height:20px;"></div>
+
+        <button type="button" class="btn-primary btn-gold" onclick="verifyOtp()">
+          <i class="bi bi-check2-circle"></i> Verify OTP
+        </button>
+        <button type="button" class="btn-ghost" onclick="goTo('viewForgot')">
+          <i class="bi bi-arrow-left"></i> Change Email
+        </button>
+
+      </div><!-- /viewOtp -->
+
+
+      <!-- ════════════════════════════════
+           VIEW 4 · RESET PASSWORD
+      ════════════════════════════════ -->
+      <div class="view hidden" id="viewReset">
+
+        <div class="progress-crumb">
+          <div class="crumb done"><div class="crumb-dot"><i class="bi bi-check" style="font-size:0.6rem;"></i></div><span>Email</span></div>
+          <div class="crumb-line"></div>
+          <div class="crumb done"><div class="crumb-dot"><i class="bi bi-check" style="font-size:0.6rem;"></i></div><span>OTP</span></div>
+          <div class="crumb-line"></div>
+          <div class="crumb active"><div class="crumb-dot">3</div><span>Reset</span></div>
+        </div>
+
+        <div class="admin-badge teal-badge">
+          <div class="badge-icon teal"><i class="bi bi-lock-fill"></i></div>
+          <div class="badge-text"><span class="t">New</span> · Set Password</div>
+        </div>
+
+        <h1 class="form-title">Set <em class="teal">New</em><br>Password</h1>
+        <p class="form-sub">Choose a strong password for your admin account. You'll be redirected to sign in after.</p>
+
+        <div id="resetAlertBox"></div>
+
+        <!-- Hidden fields submitted to backend -->
+        <form th:action="@{/admin/reset-password}" method="post" id="resetForm">
+          <input type="hidden" name="email"   id="resetEmail" />
+          <input type="hidden" name="otpCode" id="resetOtp"   />
+
+          <div class="mb-4">
+            <label class="field-label" for="new-password">New Password</label>
+            <div class="input-wrap teal-focus">
+              <i class="bi bi-lock input-icon"></i>
+              <input type="password" id="new-password" name="newPassword"
+                     class="field-input teal-field pw-input"
+                     placeholder="Create a strong password"
+                     oninput="checkStrength(this.value)" required />
+              <button type="button" class="toggle-pw" onclick="togglePw('new-password','pwIcon2')">
+                <i class="bi bi-eye" id="pwIcon2"></i>
+              </button>
+            </div>
+            <div class="strength-bar"><div class="strength-fill" id="strengthFill"></div></div>
+            <div class="strength-label" id="strengthLabel">Enter a password to check strength</div>
+          </div>
+
+          <div class="mb-4">
+            <label class="field-label" for="confirm-password">Confirm Password</label>
+            <div class="input-wrap teal-focus">
+              <i class="bi bi-lock-fill input-icon"></i>
+              <input type="password" id="confirm-password"
+                     class="field-input teal-field pw-input"
+                     placeholder="Re-enter your new password" required />
+              <button type="button" class="toggle-pw" onclick="togglePw('confirm-password','pwIcon3')">
+                <i class="bi bi-eye" id="pwIcon3"></i>
+              </button>
+            </div>
+          </div>
+
+          <div class="form-divider"></div>
+
+          <button type="button" class="btn-primary btn-teal" onclick="submitReset()">
+            <i class="bi bi-shield-check"></i> Reset Password &amp; Sign In
+          </button>
+        </form>
+
+      </div><!-- /viewReset -->
+
+    </div><!-- /form-card -->
+  </div><!-- /form-panel -->
+
+  <script>
+    /* ════════════════════════════
+       VIEW SWITCHING
+    ════════════════════════════ */
+    const VIEWS = ['viewLogin','viewForgot','viewOtp','viewReset'];
+
+    const PANEL_STATES = {
+      viewLogin:  {
+        icon:'bi-shield-lock-fill', iconClass:'', eyebrowClass:'', dotClass:'red-dot',
+        eyebrow:'Restricted Access', titleA:'Admin', em:'Control', emClass:'', titleB:'Center',
+        desc:'Secure portal for administrators. Manage jobs, users, and applications from one place.',
+        showPerks: true
+      },
+      viewForgot: {
+        icon:'bi-key-fill', iconClass:'forgot-mode', eyebrowClass:'gold-mode', dotClass:'gold-dot',
+        eyebrow:'Password Recovery', titleA:'Recover', em:'Access', emClass:'gold', titleB:'Securely',
+        desc:'Enter your registered admin email to receive a one-time password reset code.',
+        showPerks: false
+      },
+      viewOtp: {
+        icon:'bi-shield-check', iconClass:'forgot-mode', eyebrowClass:'gold-mode', dotClass:'gold-dot',
+        eyebrow:'OTP Verification', titleA:'Verify', em:'Identity', emClass:'gold', titleB:'First',
+        desc:'Enter the 6-digit code sent to your email. It expires in 5 minutes.',
+        showPerks: false
+      },
+      viewReset: {
+        icon:'bi-lock-fill', iconClass:'reset-mode', eyebrowClass:'teal-mode', dotClass:'teal-dot',
+        eyebrow:'Set New Password', titleA:'Secure', em:'New', emClass:'teal', titleB:'Password',
+        desc:'Choose a strong, unique password for your admin account.',
+        showPerks: false
+      }
+    };
+
+    function goTo(viewId) {
+      VIEWS.forEach(v => {
+        document.getElementById(v).classList.toggle('hidden', v !== viewId);
+      });
+      // Animate the new view
+      const el = document.getElementById(viewId);
+      el.style.animation = 'none';
+      void el.offsetWidth;
+      el.style.animation = '';
+
+      // Update left panel
+      const s = PANEL_STATES[viewId];
+      if (!s) return;
+
+      document.getElementById('panelIcon').className = 'bi ' + s.icon;
+      const si = document.getElementById('panelShieldIcon');
+      si.className = 'shield-icon ' + s.iconClass;
+
+      const ey = document.getElementById('panelEyebrow');
+      ey.className = 'panel-eyebrow ' + s.eyebrowClass;
+      document.getElementById('panelDot').className = s.dotClass;
+      document.getElementById('panelEyebrowText').textContent = s.eyebrow;
+
+      document.getElementById('panelTitle').innerHTML =
+        s.titleA + ' <em id="panelTitleEm" class="' + s.emClass + '">' + s.em + '</em><br><span id="panelTitleSub">' + s.titleB + '</span>';
+
+      document.getElementById('panelDesc').textContent = s.desc;
+      document.getElementById('perkList').style.opacity = s.showPerks ? '1' : '0';
+      document.getElementById('perkList').style.pointerEvents = s.showPerks ? '' : 'none';
+    }
+
+    /* ════════════════════════════
+       TOGGLE PASSWORD
+    ════════════════════════════ */
+    function togglePw(inputId, iconId) {
+      const pw   = document.getElementById(inputId);
+      const icon = document.getElementById(iconId);
+      pw.type = pw.type === 'password' ? 'text' : 'password';
+      icon.className = pw.type === 'password' ? 'bi bi-eye' : 'bi bi-eye-slash';
+    }
+
+    /* ════════════════════════════
+       INLINE ALERTS
+    ════════════════════════════ */
+    function showAlert(containerId, type, msg) {
+      const icons = { error:'exclamation-triangle-fill', success:'check-circle-fill', info:'info-circle-fill', warning:'exclamation-triangle-fill' };
+      document.getElementById(containerId).innerHTML =
+        `<div class="alert-box alert-${type}" style="margin-bottom:18px;">
+           <i class="bi bi-${icons[type]}"></i><span>${msg}</span>
+         </div>`;
+    }
+    function clearAlert(id) { document.getElementById(id).innerHTML = ''; }
+
+    /* ════════════════════════════
+       OTP TIMER
+    ════════════════════════════ */
+    let otpTimer = null;
+
+    function startOtpTimer(seconds) {
+      clearInterval(otpTimer);
+      const el = document.getElementById('otpCountdown');
+      let s = seconds;
+      otpTimer = setInterval(() => {
+        s--;
+        const m = Math.floor(s / 60), sec = s % 60;
+        el.textContent = `${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
+        if (s <= 60) el.style.color = '#f87171';
+        if (s <= 0) {
+          clearInterval(otpTimer);
+          el.textContent = 'Expired';
+          showAlert('otpAlertBox','error','OTP expired. Go back and request a new one.');
+        }
+      }, 1000);
+    }
+
+    /* ════════════════════════════
+       FORGOT PASSWORD — SEND OTP
+    ════════════════════════════ */
+    function sendForgotOtp() {
+      const email = document.getElementById('forgot-email').value.trim();
+      if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        showAlert('forgotAlertBox','error','Please enter a valid admin email address.');
+        return;
+      }
+      clearAlert('forgotAlertBox');
+      const btn = document.getElementById('sendForgotOtpBtn');
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spin"></span> Sending…';
+
+      /* POST to backend endpoint */
+      fetch('/admin/forgot-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: 'email=' + encodeURIComponent(email)
+      })
+      .then(r => r.json())
+      .then(data => {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-send-fill"></i> Send Recovery OTP';
+        if (data.success) {
+          document.getElementById('otpSentEmail').textContent = email;
+          document.querySelectorAll('.otp-digit').forEach(d => d.value = '');
+          startOtpTimer(300);
+          goTo('viewOtp');
+        } else {
+          showAlert('forgotAlertBox','error', data.message || 'No admin account found with that email.');
+        }
+      })
+      .catch(() => {
+        // Fallback for demo / local dev without backend
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-send-fill"></i> Send Recovery OTP';
+        document.getElementById('otpSentEmail').textContent = email;
+        document.querySelectorAll('.otp-digit').forEach(d => d.value = '');
+        startOtpTimer(300);
+        goTo('viewOtp');
+      });
+    }
+
+    /* ════════════════════════════
+       OTP INPUT NAVIGATION
+    ════════════════════════════ */
+    function otpNav(el, idx) {
+      el.value = el.value.replace(/[^0-9]/g,'');
+      el.classList.toggle('filled', el.value !== '');
+      const digits = document.querySelectorAll('.otp-digit');
+      if (el.value && idx < 5) digits[idx + 1].focus();
+    }
+    function otpBack(e, idx) {
+      const digits = document.querySelectorAll('.otp-digit');
+      if (e.key === 'Backspace' && !digits[idx].value && idx > 0) digits[idx - 1].focus();
+    }
+
+    /* ════════════════════════════
+       VERIFY OTP
+    ════════════════════════════ */
+    function verifyOtp() {
+      const digits = document.querySelectorAll('.otp-digit');
+      const otp = Array.from(digits).map(d => d.value).join('');
+      if (otp.length < 6) {
+        showAlert('otpAlertBox','error','Please enter all 6 digits of your OTP.');
+        return;
+      }
+      clearAlert('otpAlertBox');
+      const email = document.getElementById('otpSentEmail').textContent;
+
+      fetch('/admin/verify-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: 'email=' + encodeURIComponent(email) + '&otpCode=' + encodeURIComponent(otp)
+      })
+      .then(r => r.json())
+      .then(data => {
+        if (data.success) {
+          clearInterval(otpTimer);
+          // Pass email + otp to reset form hidden fields
+          document.getElementById('resetEmail').value = email;
+          document.getElementById('resetOtp').value   = otp;
+          goTo('viewReset');
+        } else {
+          showAlert('otpAlertBox','error', data.message || 'Invalid or expired OTP. Please try again.');
+        }
+      })
+      .catch(() => {
+        // Demo fallback
+        clearInterval(otpTimer);
+        document.getElementById('resetEmail').value = email;
+        document.getElementById('resetOtp').value   = otp;
+        goTo('viewReset');
+      });
+    }
+
+    /* ════════════════════════════
+       RESEND OTP
+    ════════════════════════════ */
+    function resendOtp() {
+      const email = document.getElementById('otpSentEmail').textContent;
+      clearAlert('otpAlertBox');
+      document.querySelectorAll('.otp-digit').forEach(d => { d.value = ''; d.classList.remove('filled'); });
+      document.getElementById('otpCountdown').style.color = '';
+
+      fetch('/admin/forgot-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: 'email=' + encodeURIComponent(email)
+      })
+      .then(r => r.json())
+      .then(data => {
+        if (data.success) {
+          startOtpTimer(300);
+          showAlert('otpAlertBox','success','New OTP sent to ' + email);
+        } else {
+          showAlert('otpAlertBox','error', data.message || 'Could not resend OTP.');
+        }
+      })
+      .catch(() => {
+        startOtpTimer(300);
+        showAlert('otpAlertBox','info','OTP resent (demo mode).');
+      });
+    }
+
+    /* ════════════════════════════
+       PASSWORD STRENGTH
+    ════════════════════════════ */
+    function checkStrength(val) {
+      const fill  = document.getElementById('strengthFill');
+      const label = document.getElementById('strengthLabel');
+      let score = 0;
+      if (val.length >= 6)  score++;
+      if (val.length >= 10) score++;
+      if (/[A-Z]/.test(val)) score++;
+      if (/[0-9]/.test(val)) score++;
+      if (/[^A-Za-z0-9]/.test(val)) score++;
+      const levels = [
+        { w:'0%',   bg:'transparent', text:'Enter a password to check strength' },
+        { w:'25%',  bg:'#f87171',     text:'Weak — too short' },
+        { w:'50%',  bg:'#fb923c',     text:'Fair — add numbers or symbols' },
+        { w:'75%',  bg:'#facc15',     text:'Good — almost there!' },
+        { w:'90%',  bg:'#4ade80',     text:'Strong password ✓' },
+        { w:'100%', bg:'#4ade80',     text:'Excellent admin password ✓✓' },
+      ];
+      const l = levels[Math.min(score, 5)];
+      fill.style.width      = val.length === 0 ? '0%' : l.w;
+      fill.style.background = l.bg;
+      label.textContent     = val.length === 0 ? levels[0].text : l.text;
+      label.style.color     = val.length === 0 ? 'var(--muted)' : l.bg;
+    }
+
+    /* ════════════════════════════
+       SUBMIT RESET
+    ════════════════════════════ */
+    function submitReset() {
+      const np = document.getElementById('new-password').value;
+      const cp = document.getElementById('confirm-password').value;
+      if (np.length < 6) {
+        showAlert('resetAlertBox','error','Password must be at least 6 characters.');
+        return;
+      }
+      if (np !== cp) {
+        showAlert('resetAlertBox','error','Passwords do not match.');
+        return;
+      }
+      clearAlert('resetAlertBox');
+      document.getElementById('resetForm').submit();
+    }
+  </script>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

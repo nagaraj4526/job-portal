@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <title>Edit Job</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      min-height: 100vh;
+      font-family: 'DM Sans', sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 16px;
+      overflow-x: hidden;
+    }
+
+    /* Floating background orbs */
+    body::before, body::after {
+      content: '';
+      position: fixed;
+      border-radius: 50%;
+      opacity: 0.18;
+      pointer-events: none;
+      animation: float 8s ease-in-out infinite alternate;
+    }
+    body::before {
+      width: 420px; height: 420px;
+      background: radial-gradient(circle, #fff 0%, transparent 70%);
+      top: -100px; right: -100px;
+    }
+    body::after {
+      width: 300px; height: 300px;
+      background: radial-gradient(circle, #c084fc 0%, transparent 70%);
+      bottom: -80px; left: -80px;
+      animation-delay: 3s;
+    }
+
+    @keyframes float {
+      from { transform: translateY(0) scale(1); }
+      to   { transform: translateY(30px) scale(1.05); }
+    }
+
+    .edit-wrapper {
+      width: 100%;
+      max-width: 680px;
+      animation: slideUp 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+    }
+
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(40px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Back link */
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: rgba(255,255,255,0.85);
+      text-decoration: none;
+      font-size: 0.875rem;
+      font-weight: 500;
+      margin-bottom: 20px;
+      transition: color 0.2s, gap 0.2s;
+    }
+    .back-link:hover { color: #fff; gap: 10px; }
+    .back-link svg { transition: transform 0.2s; }
+    .back-link:hover svg { transform: translateX(-3px); }
+
+    /* Card */
+    .card {
+      border: none;
+      border-radius: 24px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.25), 0 0 0 1px rgba(255,255,255,0.1) inset;
+      background: rgba(255,255,255,0.97);
+      backdrop-filter: blur(12px);
+      overflow: hidden;
+    }
+
+    /* Card header */
+    .card-header-custom {
+      background: linear-gradient(135deg, #343a40 0%, #1a1d20 100%);
+      padding: 28px 36px 24px;
+      position: relative;
+      overflow: hidden;
+    }
+    .card-header-custom::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(102,126,234,0.25), transparent 60%);
+    }
+    .header-content { position: relative; z-index: 1; }
+    .edit-badge {
+      display: inline-block;
+      background: rgba(255,193,7,0.2);
+      color: #ffc107;
+      border: 1px solid rgba(255,193,7,0.4);
+      border-radius: 20px;
+      padding: 3px 12px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+    .card-header-custom h2 {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 1.6rem;
+      color: #fff;
+      line-height: 1.1;
+    }
+    .card-header-custom p {
+      color: rgba(255,255,255,0.5);
+      font-size: 0.85rem;
+      margin-top: 4px;
+    }
+    .header-icon {
+      position: absolute;
+      right: 30px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 56px; height: 56px;
+      background: rgba(255,255,255,0.07);
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid rgba(255,255,255,0.1);
+      z-index: 1;
+    }
+
+    /* Form body */
+    .card-body-custom {
+      padding: 32px 36px 36px;
+    }
+
+    /* Field groups */
+    .form-section-label {
+      font-family: 'Syne', sans-serif;
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: #9ca3af;
+      margin-bottom: 16px;
+      margin-top: 28px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid #f3f4f6;
+    }
+    .form-section-label:first-child { margin-top: 0; }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+    }
+    .form-grid.full { grid-template-columns: 1fr; }
+
+    /* Labels & inputs */
+    .form-label {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: #374151;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .form-label .required { color: #ef4444; }
+
+    .form-control, .form-select {
+      border: 1.5px solid #e5e7eb;
+      border-radius: 12px;
+      padding: 10px 14px;
+      font-size: 0.9rem;
+      font-family: 'DM Sans', sans-serif;
+      color: #111827;
+      background: #fafafa;
+      transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+      width: 100%;
+    }
+    .form-control:focus, .form-select:focus {
+      outline: none;
+      border-color: #667eea;
+      background: #fff;
+      box-shadow: 0 0 0 4px rgba(102,126,234,0.12);
+    }
+    .form-control::placeholder { color: #9ca3af; }
+
+    /* Salary input wrapper */
+    .salary-wrapper {
+      position: relative;
+    }
+    .salary-prefix {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-weight: 600;
+      color: #6b7280;
+      font-size: 0.9rem;
+      pointer-events: none;
+    }
+    .salary-wrapper .form-control {
+      padding-left: 28px;
+    }
+
+    /* Input with icon */
+    .input-icon-wrap {
+      position: relative;
+    }
+    .input-icon-wrap .icon {
+      position: absolute;
+      left: 13px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #9ca3af;
+      pointer-events: none;
+    }
+    .input-icon-wrap .form-control {
+      padding-left: 38px;
+    }
+
+    /* Hidden ID field indicator */
+    .id-display {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: #f3f4f6;
+      border: 1.5px solid #e5e7eb;
+      border-radius: 12px;
+      padding: 10px 14px;
+      font-size: 0.9rem;
+      color: #6b7280;
+      font-weight: 500;
+      width: 100%;
+    }
+    .id-display .id-chip {
+      background: #667eea;
+      color: white;
+      border-radius: 6px;
+      padding: 1px 8px;
+      font-size: 0.75rem;
+      font-weight: 700;
+    }
+
+    /* Action buttons */
+    .btn-area {
+      display: flex;
+      gap: 12px;
+      margin-top: 32px;
+      padding-top: 24px;
+      border-top: 1px solid #f3f4f6;
+    }
+
+    .btn-save {
+      flex: 1;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      padding: 13px 24px;
+      font-family: 'Syne', sans-serif;
+      font-size: 0.95rem;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+      cursor: pointer;
+      transition: opacity 0.2s, transform 0.15s, box-shadow 0.2s;
+      box-shadow: 0 4px 15px rgba(102,126,234,0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .btn-save:hover {
+      opacity: 0.92;
+      transform: translateY(-1px);
+      box-shadow: 0 8px 20px rgba(102,126,234,0.5);
+    }
+    .btn-save:active { transform: translateY(0); }
+
+    .btn-cancel {
+      background: #f3f4f6;
+      color: #374151;
+      border: 1.5px solid #e5e7eb;
+      border-radius: 12px;
+      padding: 13px 22px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s, border-color 0.2s;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .btn-cancel:hover { background: #e5e7eb; border-color: #d1d5db; color: #111827; }
+
+    /* Responsive */
+    @media (max-width: 540px) {
+      .card-header-custom, .card-body-custom { padding-left: 22px; padding-right: 22px; }
+      .form-grid { grid-template-columns: 1fr; }
+      .header-icon { display: none; }
+      .btn-area { flex-direction: column-reverse; }
+      .btn-cancel { justify-content: center; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="edit-wrapper">
+
+    <!-- Back link -->
+    <a th:href="@{/admin/company}" href="#" class="back-link">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+        <path d="M19 12H5M12 5l-7 7 7 7"/>
+      </svg>
+      Back to Job List
+    </a>
+
+    <div class="card">
+
+      <!-- Header -->
+      <div class="card-header-custom">
+        <div class="header-content">
+          <div class="edit-badge">✏️ Editing Record</div>
+          <h2>Edit Job Listing</h2>
+          <p>Update the details below and save your changes.</p>
+        </div>
+        <div class="header-icon">
+          <svg width="26" height="26" fill="none" stroke="rgba(255,255,255,0.7)" stroke-width="1.8" viewBox="0 0 24 24">
+            <path d="M20 7H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"/>
+            <path d="M16 3H8a2 2 0 0 0-2 2v2h12V5a2 2 0 0 0-2-2z"/>
+            <path d="M12 17v4M8 21h8"/>
+          </svg>
+        </div>
+      </div>
+
+      <!-- Form -->
+      <div class="card-body-custom">
+        <form th:action="@{/admin/update/{id}(id=${company.id})}" th:object="${company}" method="post">
+
+          <!-- Hidden ID -->
+          <input type="hidden" th:field="*{id}" />
+
+          <!-- Section: Identity -->
+          <div class="form-section-label">Job Identity</div>
+
+          <div class="form-grid">
+            <!-- Record ID (read-only display) -->
+            <div>
+              <label class="form-label">
+                <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
+                Record ID
+              </label>
+              <div class="id-display">
+                <span class="id-chip">#</span>
+                <span th:text="${company.id}">001</span>
+              </div>
+            </div>
+
+            <!-- Company Name -->
+            <div>
+              <label class="form-label" for="companyName">
+                Company Name <span class="required">*</span>
+              </label>
+              <div class="input-icon-wrap">
+                <svg class="icon" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path d="M3 21h18M9 21V7l6-4v18M9 11H3v10M15 11h6v10"/>
+                </svg>
+                <input type="text"
+                       id="companyName"
+                       th:field="*{companyName}"
+                       class="form-control"
+                       placeholder="e.g. Infosys Ltd."
+                       required />
+              </div>
+            </div>
+          </div>
+
+          <!-- Job Title (full width) -->
+          <div class="form-grid full" style="margin-top:18px;">
+            <div>
+              <label class="form-label" for="jobtitle">
+                Job Title <span class="required">*</span>
+              </label>
+              <div class="input-icon-wrap">
+                <svg class="icon" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/>
+                </svg>
+                <input type="text"
+                       id="jobtitle"
+                       th:field="*{jobtitle}"
+                       class="form-control"
+                       placeholder="e.g. Senior Backend Developer"
+                       required />
+              </div>
+            </div>
+          </div>
+
+          <!-- Section: Details -->
+          <div class="form-section-label">Location & Compensation</div>
+
+          <div class="form-grid">
+            <!-- Location -->
+            <div>
+              <label class="form-label" for="location">
+                Location <span class="required">*</span>
+              </label>
+              <div class="input-icon-wrap">
+                <svg class="icon" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="9" r="2.5"/>
+                </svg>
+                <input type="text"
+                       id="location"
+                       th:field="*{location}"
+                       class="form-control"
+                       placeholder="e.g. Bengaluru, Karnataka"
+                       required />
+              </div>
+            </div>
+
+            <!-- Salary -->
+            <div>
+              <label class="form-label" for="salary">
+                Salary (₹) <span class="required">*</span>
+              </label>
+              <div class="salary-wrapper">
+                <span class="salary-prefix">₹</span>
+                <input type="number"
+                       id="salary"
+                       th:field="*{salary}"
+                       class="form-control"
+                       placeholder="e.g. 800000"
+                       min="0"
+                       required />
+              </div>
+            </div>
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="btn-area">
+            <a th:href="@{/admin/company}" href="#" class="btn-cancel">
+              <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                <path d="M18 6 6 18M6 6l12 12"/>
+              </svg>
+              Cancel
+            </a>
+            <button type="submit" class="btn-save">
+              <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+                <polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/>
+              </svg>
+              Save Changes
+            </button>
+          </div>
+
+        </form>
+      </div>
+    </div>
+
+  </div>
+</body>
+</html>
